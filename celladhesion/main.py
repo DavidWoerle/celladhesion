@@ -12,6 +12,8 @@ import cellposefunctions as cpf
 import cv2
 import programrun_functions as prf
 
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"     # Suppress warning when program is run on different computer
+
 """ Run program for already created masks/diams, create new ones or run on test images to find parameters for cell 
 detection? """
 new_or_use_or_test = input("Create NEW masks, USE already created masks, run on TEST images or find masks/diams for \
