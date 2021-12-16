@@ -1,5 +1,5 @@
 import os.path
-
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 import imagefunctions as imf
@@ -14,7 +14,8 @@ import programrun_functions as prf
 
 """ Run program for already created masks/diams, create new ones or run on test images to find parameters for cell 
 detection? """
-new_or_use_or_test = input("Create NEW masks, USE already created masks or run on TEST images? [n / u / t]: ")
+new_or_use_or_test = input("Create NEW masks, USE already created masks, run on TEST images or find masks/diams for \
+multiple data? [n / u / t / m]: ")
 
 # Create new masks:
 if new_or_use_or_test == "n":
@@ -145,6 +146,40 @@ elif new_or_use_or_test == "t":
             break
         else:
             print("Set new parameters.")
+
+# Run Code to find masks and diams for multiple data inputs
+elif new_or_use_or_test == "m":
+    path_input = list()
+    imgs = list()
+    cellprob_threshold = list()
+    flow_threshold = list()
+    while True:
+        path_input_temp = input("Path of '.tif'-images or 'stop', if no more paths shall be read: ")
+        if path_input_temp == "stop":
+            break
+        path_input.append(path_input_temp)
+        imgs.append(imf.read_tifs(path_input_temp))
+        cellprob_threshold_temp, flow_threshold_temp = prf.get_celldet_params()
+        cellprob_threshold.append(cellprob_threshold_temp)
+        flow_threshold.append(flow_threshold_temp)
+        print("\n")
+
+    for data_nr in range(len(path_input)):
+        # create new directory for the data with the selected 'cellprob_threshold' and 'flow_threshold'
+        path_output_cells_diams = os.path.join(path_input[data_nr],
+                                               "celladhesion_" + 'cpt' + str(cellprob_threshold[data_nr]) + 'ft' + str(
+                                                   flow_threshold[data_nr]))
+        os.mkdir(path_output_cells_diams)
+
+        # run 'find_cells' method and save masks and diams (names: include 'cellprob_threshold' and 'flow_threshold')
+        cells, diams, masks = Cell.find_cells(imgs[data_nr], cellprob_threshold=cellprob_threshold[data_nr],
+                                              flow_threshold=flow_threshold[data_nr])
+        masks_name = 'masks_' + 'cpt' + str(cellprob_threshold[data_nr]) + 'ft' + str(flow_threshold[data_nr])
+        Cell.safe_masks(masks, path_output_cells_diams, masks_name)
+        diams_name = 'diams_' + 'cpt' + str(cellprob_threshold[data_nr]) + 'ft' + str(flow_threshold[data_nr])
+        Cell.safe_diams(diams, path_output_cells_diams, diams_name)
+
+
 
 
 
