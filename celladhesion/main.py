@@ -93,7 +93,7 @@ elif new_or_use_or_test == "u":
 
         # find cells and adherent cells
         cells = Cell.find_cells_from_masks(masks)
-        number_adherent_cells, number_cells_total, adherent_cells = AdherentCell.find_adherent_cells2(cells, diams, images_threshold, compare_threshold, missing_cell_threshold=2)
+        number_adherent_cells, number_cells_total, adherent_cells = AdherentCell.find_adherent_cells(cells, diams, images_threshold, compare_threshold)
 
         # create '.txt'-file to save the data
         txtfile = open(os.path.join(path_output_adherent, 'celladhesion_' + 'time' + str(time_for_adherent) + 's_tolerance'
