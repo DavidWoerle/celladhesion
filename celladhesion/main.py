@@ -17,7 +17,7 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"     # Suppress warning when program 
 """ Run program for already created masks/diams, create new ones or run on test images to find parameters for cell 
 detection? """
 new_or_use_or_test = input("Create NEW masks, USE already created masks, run on TEST images or find masks/diams for \
-multiple data? [n / u / t / m]: ")
+MULTIPLE data? [n / u / t / m]: ")
 
 # Create new masks:
 if new_or_use_or_test == "n":
@@ -93,7 +93,7 @@ elif new_or_use_or_test == "u":
 
         # find cells and adherent cells
         cells = Cell.find_cells_from_masks(masks)
-        number_adherent_cells, number_cells_total, adherent_cells = AdherentCell.find_adherent_cells(cells, diams, images_threshold, compare_threshold)
+        number_adherent_cells, number_cells_total, adherent_cells = AdherentCell.find_adherent_cells2(cells, diams, images_threshold, compare_threshold, missing_cell_threshold=2)
 
         # create '.txt'-file to save the data
         txtfile = open(os.path.join(path_output_adherent, 'celladhesion_' + 'time' + str(time_for_adherent) + 's_tolerance'
