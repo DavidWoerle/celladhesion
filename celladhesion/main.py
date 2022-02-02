@@ -78,9 +78,9 @@ elif new_or_use_or_test == "u":
 
     # get masks/diams from user
     path_input = input("Path where masks and diams are saved: ").replace('\\', '/')
-    masks_name = input("Name of '.npy'-file with masks (with ending): ")
+    masks_name = str(input("Name of '.npy'-file with masks (without ending): ")) + '.npy'
     masks = imf.load_masks(os.path.join(path_input, masks_name))
-    diams_name = input("Name of '.txt'-file with diameters (with ending): ")
+    diams_name = str(input("Name of '.txt'-file with diameters (without ending): ")) + '.txt'
     diams = imf.load_diams(os.path.join(path_input, diams_name))
 
     while True:
