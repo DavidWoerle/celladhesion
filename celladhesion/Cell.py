@@ -1,5 +1,4 @@
 import os.path
-
 import cellpose.models
 import numpy as np
 import imagefunctions as imf

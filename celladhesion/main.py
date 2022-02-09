@@ -1,15 +1,9 @@
-import os.path
 import os
 import matplotlib.pyplot as plt
-import numpy as np
 import imagefunctions as imf
 import skimage.io
-from skimage.util import img_as_ubyte
 from Cell import Cell
 from AdherentCell import AdherentCell
-from cellpose import models, plot
-import cellposefunctions as cpf
-import cv2
 import programrun_functions as prf
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"     # Suppress warning when program is run on different computer
@@ -115,12 +109,28 @@ elif new_or_use_or_test == "u":
         # show created images and save them in the subdirectory
         prf.show_and_save_result_imgs(overlay, path_output_adherent)
 
-        # check if user wants to rerun with different parameters
+        # check if user wants to rerun or stop the program
         rerun = input("Rerun? [y / n]: ")
+        # if no, break out of the loop to stop the program
         if rerun == "n":
             break
         else:
-            print("Set new parameters.")
+            # if yes, check if user wants to use the same masks as before or new ones
+            new_or_same_masks = input("Use NEW or SAME masks? [n / s]: ")
+            # if the user chooses new ones, get new images, masks and diameters
+            if new_or_same_masks == "n":
+                print("\n\n")
+                # get images from user
+                path_imgs = input("Path of '.tif'-images: ").replace('\\', '/')
+                imgs = imf.read_tifs(path_imgs)
+
+                # get masks/diams from user
+                path_input = input("Path where masks and diams are saved: ").replace('\\', '/')
+                masks_name = str(input("Name of '.npy'-file with masks (without ending): ")) + '.npy'
+                masks = imf.load_masks(os.path.join(path_input, masks_name))
+                diams_name = str(input("Name of '.txt'-file with diameters (without ending): ")) + '.txt'
+                diams = imf.load_diams(os.path.join(path_input, diams_name))
+
 
 # run on test images to find parameters for cell detection
 elif new_or_use_or_test == "t":
