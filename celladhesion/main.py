@@ -10,8 +10,8 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"     # Suppress warning when program 
 
 """ Run program for already created masks/diams, create new ones or run on test images to find parameters for cell 
 detection? """
-new_or_use_or_test = input("Create NEW masks, USE already created masks, run on TEST images or find masks/diams for \
-MULTIPLE data? [n / u / t / m]: ")
+new_or_use_or_test = input("Create NEW masks, USE already created masks, run on TEST images, find masks/diams for \
+MULTIPLE data or determine CONFLUENCE? \n[n / u / t / m / c]: ")
 
 # Create new masks:
 if new_or_use_or_test == "n":
@@ -40,6 +40,9 @@ if new_or_use_or_test == "n":
     number_adherent_cells, number_cells_total, adherent_cells = AdherentCell.find_adherent_cells(cells, diams,
                                                                                                  images_threshold,
                                                                                                  compare_threshold)
+    # find number of adherent cells on each image
+    nr_adherent_cells_on_img = AdherentCell.nr_adherent_cells_on_img(adherent_cells, len(imgs))
+
     # create new subdirectory for data with the selected time and tolerance
     path_output_adherent = os.path.join(path_output_cells_diams, 'time' + str(time_for_adherent) + 's_tolerance' + str(compare_threshold))
     os.mkdir(path_output_adherent)
@@ -53,7 +56,8 @@ if new_or_use_or_test == "n":
                                compare_threshold)
 
     # save the information found about the adherent cells in the text file
-    prf.save_adh_in_txtfile(txtfile, number_adherent_cells, number_cells_total, adherent_cells)
+    prf.save_adh_in_txtfile(txtfile, number_adherent_cells, number_cells_total, adherent_cells, cells,
+                            nr_adherent_cells_on_img)
 
     # overlay outlines of the detected cells on the input images and mark the adherent cells
     overlay = imf.overlay_outlines(imgs, masks)
@@ -87,7 +91,11 @@ elif new_or_use_or_test == "u":
 
         # find cells and adherent cells
         cells = Cell.find_cells_from_masks(masks)
-        number_adherent_cells, number_cells_total, adherent_cells = AdherentCell.find_adherent_cells(cells, diams, images_threshold, compare_threshold)
+        number_adherent_cells, number_cells_total, adherent_cells = AdherentCell.find_adherent_cells(cells, diams,
+                                                                                                     images_threshold,
+                                                                                                     compare_threshold)
+        # find number of adherent cells on each image
+        nr_adherent_cells_on_img = AdherentCell.nr_adherent_cells_on_img(adherent_cells, len(imgs))
 
         # create '.txt'-file to save the data
         txtfile = open(os.path.join(path_output_adherent, 'celladhesion_' + 'time' + str(time_for_adherent) + 's_tolerance'
@@ -98,7 +106,8 @@ elif new_or_use_or_test == "u":
                                    compare_threshold)
 
         # save the found information about the adherent cells in the text file
-        prf.save_adh_in_txtfile(txtfile, number_adherent_cells, number_cells_total, adherent_cells)
+        prf.save_adh_in_txtfile(txtfile, number_adherent_cells, number_cells_total, adherent_cells, cells,
+                                nr_adherent_cells_on_img)
 
         # overlay outlines of the detected cells on the input images and mark the adherent cells
         overlay = imf.overlay_outlines(imgs, masks)
@@ -190,6 +199,9 @@ elif new_or_use_or_test == "m":
         Cell.safe_masks(masks, path_output_cells_diams, masks_name)
         diams_name = 'diams_' + 'cpt' + str(cellprob_threshold[data_nr]) + 'ft' + str(flow_threshold[data_nr])
         Cell.safe_diams(diams, path_output_cells_diams, diams_name)
+
+#elif new_or_use_or_test == "c":
+
 
 
 

@@ -1,3 +1,5 @@
+import numpy as np
+
 from Cell import Cell
 
 
@@ -5,7 +7,7 @@ class AdherentCell(Cell):
     """
     Subclass of Cell with extra attributes 'first_appearance' and 'number_appearances' needed for adherent adherent_cells
     """
-    __adherent_cellcounter = 0  # number of created 'AdherentCell'- objects
+    adherent_cellcounter = 0  # number of created 'AdherentCell'- objects
 
     def __init__(self, pos, first_appearance, number_appearances):
         """
@@ -22,7 +24,7 @@ class AdherentCell(Cell):
         self.__first_appearance = first_appearance
         self.__number_appearances = number_appearances
 
-        AdherentCell.__adherent_cellcounter += 1
+        AdherentCell.adherent_cellcounter += 1
 
     def get_first_appearance(self):
         return self.__first_appearance
@@ -37,8 +39,12 @@ class AdherentCell(Cell):
         self.__number_appearances = number_appearances
 
     @staticmethod
+    def reset_adherent_cellcounter():
+        AdherentCell.adherent_cellcounter = 0
+
+    @staticmethod
     def get_adherent_cellcounter():
-        return AdherentCell.__adherent_cellcounter
+        return AdherentCell.adherent_cellcounter
 
     def __str__(self):
         return "Pos.: {0}, Imgnr. first appearance: {1}, Nr. appearances: {2}".format(self.get_position(),
@@ -72,66 +78,67 @@ class AdherentCell(Cell):
         if threshold_imgs < 2:
             print("threshold_imgs has to be greater than or equal to 2")
             return "error", "error", "error"
-        elif float(tolerance) > min(diams) / 2:
+        """elif float(tolerance) > min(diams) / 2:
             print("tolerance has to be smaller than estimated cell size")  # prevent overlapping of adherent_cells
-            return "error", "error", "error"
+            return "error", "error", "error" """
+
+        AdherentCell.reset_adherent_cellcounter()   # reset adherent_cellcounter every time the method is called
+        number_adherent_cells = 0  # complete number of adherent adherent_cells
+        number_cells_total = 0  # complete number of adherent_cells
+
+        adherent_cells_doubles = list()  # auxiliary variable to prevent multiple counts for one cell
+        adherent_cells = list()          # list with 'AdherentCell'-objects
+
+        # iterate every image (ignore last image where no more new adherent adherent_cells can be found)
+        for img_number in range(len(cells) - 1):
+
+            # iterate every cell on image 'img_number'
+            for cell_number in range(len(cells[img_number])):
+                number_consecutive_imgs = 1  # auxiliary variable that represents number of images in which cell keeps its position
+
+                # prevent multiple counts for one cell by checking if it's already in 'adherent_cells_doubles'-list
+                if not (cells[img_number][cell_number] in adherent_cells_doubles):
+
+                    # iterate every image after 'image_number' to find adherent adherent_cells
+                    for check_img_number in range(img_number + 1, len(cells)):
+                        """Boolean used to make sure no more images are searched for  adherent_cells[img_number][cell_number] if 
+                        one image 'check_image_number' doesn't contain an adherent cell"""
+                        cell_found = False
+
+                        # iterate every cell on image 'check_img_number'
+                        for check_cell_number in range(len(cells[check_img_number])):
+
+                            # compare cell position
+                            if cells[img_number][cell_number].compare(cells[check_img_number][check_cell_number],
+                                                                      tolerance):
+                                """if true, raise 'number_consecutive_imgs' and add cell to 'adherent_cells_doubles' 
+                                (adherent_cells[check_img_number][check_cell_number] is same cell as the one on 
+                                image 'img_number' -> doesn't have to be counted twice)"""
+                                number_consecutive_imgs += 1
+                                adherent_cells_doubles.append(cells[check_img_number][check_cell_number])
+                                cell_found = True
+                                break
+                        if not cell_found:
+                            break  # no cell found on image 'check_img_number'
+                            # -> jump to next cell cell[img_number][cell_number]
+
+                # cell is only considered adherent, if it keeps position on at least 'threshold_imgs' images
+                if number_consecutive_imgs >= threshold_imgs:
+                    number_adherent_cells += 1
+                    adherent_cells.append(AdherentCell(cells[img_number][cell_number].get_position(), img_number,
+                                                       number_consecutive_imgs))
+
+        """calculate total number of adherent_cells by counting all cell objects and subtracting the doubled 
+        adherent_cells (saved in 'adherent_cells_doubles'-list)"""
+        for i in range(len(cells)):
+            for j in range(len(cells[i])):
+                number_cells_total += 1
+        number_cells_total -= len(adherent_cells_doubles)
+
+        if not adherent_cells:  # prevent ValueError if 'adherent_cells'-list is empty
+            return number_adherent_cells, number_cells_total, ["No adherent cells found"]
         else:
-            number_adherent_cells = 0  # complete number of adherent adherent_cells
-            number_cells_total = 0  # complete number of adherent_cells
-
-            adherent_cells_doubles = list()  # auxiliary variable to prevent multiple counts for one cell
-            adherent_cells = list()          # list with 'AdherentCell'-objects
-
-            # iterate every image (ignore last image where no more new adherent adherent_cells can be found)
-            for img_number in range(len(cells) - 1):
-
-                # iterate every cell on image 'img_number'
-                for cell_number in range(len(cells[img_number])):
-                    number_consecutive_imgs = 1  # auxiliary variable that represents number of images in which cell keeps its position
-
-                    # prevent multiple counts for one cell by checking if it's already in 'adherent_cells_doubles'-list
-                    if not (cells[img_number][cell_number] in adherent_cells_doubles):
-
-                        # iterate every image after 'image_number' to find adherent adherent_cells
-                        for check_img_number in range(img_number + 1, len(cells)):
-                            """Boolean used to make sure no more images are searched for  adherent_cells[img_number][cell_number] if 
-                            one image 'check_image_number' doesn't contain an adherent cell"""
-                            cell_found = False
-
-                            # iterate every cell on image 'check_img_number'
-                            for check_cell_number in range(len(cells[check_img_number])):
-
-                                # compare cell position
-                                if cells[img_number][cell_number].compare(cells[check_img_number][check_cell_number],
-                                                                          tolerance):
-                                    """if true, raise 'number_consecutive_imgs' and add cell to 'adherent_cells_doubles' 
-                                    (adherent_cells[check_img_number][check_cell_number] is same cell as the one on 
-                                    image 'img_number' -> doesn't have to be counted twice)"""
-                                    number_consecutive_imgs += 1
-                                    adherent_cells_doubles.append(cells[check_img_number][check_cell_number])
-                                    cell_found = True
-                                    break
-                            if not cell_found:
-                                break  # no cell found on image 'check_img_number'
-                                # -> jump to next cell cell[img_number][cell_number]
-
-                    # cell is only considered adherent, if it keeps position on at least 'threshold_imgs' images
-                    if number_consecutive_imgs >= threshold_imgs:
-                        number_adherent_cells += 1
-                        adherent_cells.append(AdherentCell(cells[img_number][cell_number].get_position(), img_number,
-                                                           number_consecutive_imgs))
-
-            """calculate total number of adherent_cells by counting all cell objects and subtracting the doubled 
-            adherent_cells (saved in 'adherent_cells_doubles'-list)"""
-            for i in range(len(cells)):
-                for j in range(len(cells[i])):
-                    number_cells_total += 1
-            number_cells_total -= len(adherent_cells_doubles)
-
-            if not adherent_cells:  # prevent ValueError if 'adherent_cells'-list is empty
-                return number_adherent_cells, number_cells_total, ["No adherent cells found"]
-            else:
-                return number_adherent_cells, number_cells_total, adherent_cells
+            return number_adherent_cells, number_cells_total, adherent_cells
 
     @staticmethod
     def find_adherent_cells2(cells, diams, threshold_imgs, tolerance, missing_cell_threshold=0):
@@ -164,70 +171,96 @@ class AdherentCell(Cell):
         if threshold_imgs < 2:
             print("threshold_imgs has to be greater than or equal to 2")
             return "error", "error", "error"
-        elif float(tolerance) > min(diams) / 2:
-            print("tolerance has to be smaller than estimated cell size")  # prevent overlapping of adherent_cells
-            return "error", "error", "error"
-        else:
-            number_adherent_cells = 0  # complete number of adherent adherent_cells
-            number_cells_total = 0  # complete number of adherent_cells
 
-            adherent_cells_doubles = list()  # auxiliary variable to prevent multiple counts for one cell
-            adherent_cells = list()  # list with 'AdherentCell'-objects
+        AdherentCell.reset_adherent_cellcounter()  # reset adherent_cellcounter every time the method is called
+        number_adherent_cells = 0  # complete number of adherent adherent_cells
+        number_cells_total = 0  # complete number of adherent_cells
 
-            # iterate every image (ignore last image where no more new adherent adherent_cells can be found)
-            for img_number in range(len(cells) - 1):
+        adherent_cells_doubles = list()  # auxiliary variable to prevent multiple counts for one cell
+        adherent_cells = list()  # list with 'AdherentCell'-objects
 
-                # iterate every cell on image 'img_number'
-                for cell_number in range(len(cells[img_number])):
-                    number_consecutive_imgs = 1  # auxiliary variable that represents number of images in which cell keeps its position
+        # iterate every image (ignore last image where no more new adherent adherent_cells can be found)
+        for img_number in range(len(cells) - 1):
 
-                    # prevent multiple counts for one cell by checking if it's already in 'adherent_cells_doubles'-list
-                    if not (cells[img_number][cell_number] in adherent_cells_doubles):
-                        missing_cell_counter = 0
+            # iterate every cell on image 'img_number'
+            for cell_number in range(len(cells[img_number])):
+                number_consecutive_imgs = 1  # auxiliary variable that represents number of images in which cell keeps its position
 
-                        # iterate every image after 'image_number' to find adherent adherent_cells
-                        for check_img_number in range(img_number + 1, len(cells)):
-                            """Boolean used to make sure no more images are searched for  adherent_cells[img_number][cell_number] if 
-                            one image 'check_image_number' doesn't contain an adherent cell"""
-                            cell_found = False
+                # prevent multiple counts for one cell by checking if it's already in 'adherent_cells_doubles'-list
+                if not (cells[img_number][cell_number] in adherent_cells_doubles):
+                    missing_cell_counter = 0
 
-                            # iterate every cell on image 'check_img_number'
-                            for check_cell_number in range(len(cells[check_img_number])):
+                    # iterate every image after 'image_number' to find adherent adherent_cells
+                    for check_img_number in range(img_number + 1, len(cells)):
+                        """Boolean used to make sure no more images are searched for  adherent_cells[img_number][cell_number] if 
+                        one image 'check_image_number' doesn't contain an adherent cell"""
+                        cell_found = False
 
-                                # compare cell position
-                                if cells[img_number][cell_number].compare(cells[check_img_number][check_cell_number],
-                                                                          tolerance):
-                                    """if true, raise 'number_consecutive_imgs' and add cell to 'adherent_cells_doubles' 
-                                    (adherent_cells[check_img_number][check_cell_number] is same cell as the one on 
-                                    image 'img_number' -> doesn't have to be counted twice)"""
-                                    number_consecutive_imgs += 1
-                                    adherent_cells_doubles.append(cells[check_img_number][check_cell_number])
-                                    cell_found = True
-                                    break
-                            if not cell_found:
-                                missing_cell_counter += 1  # no cell found on image 'check_img_number'
-                            if missing_cell_counter > missing_cell_threshold:
-                                """ jump to next cell cell[img_number][cell_number], if number of images with a missing
-                                    cell is greater than the missing_cell_threshold """
+                        # iterate every cell on image 'check_img_number'
+                        for check_cell_number in range(len(cells[check_img_number])):
+
+                            # compare cell position
+                            if cells[img_number][cell_number].compare(cells[check_img_number][check_cell_number],
+                                                                      tolerance):
+                                """if true, raise 'number_consecutive_imgs' and add cell to 'adherent_cells_doubles' 
+                                (adherent_cells[check_img_number][check_cell_number] is same cell as the one on 
+                                image 'img_number' -> doesn't have to be counted twice)"""
+                                number_consecutive_imgs += 1
+                                adherent_cells_doubles.append(cells[check_img_number][check_cell_number])
+                                cell_found = True
                                 break
+                        if not cell_found:
+                            missing_cell_counter += 1  # no cell found on image 'check_img_number'
+                        if missing_cell_counter > missing_cell_threshold:
+                            """ jump to next cell cell[img_number][cell_number], if number of images with a missing
+                                cell is greater than the missing_cell_threshold """
+                            break
 
-                                # cell is only considered adherent, if it keeps position on at least 'threshold_imgs' images
-                    if number_consecutive_imgs >= threshold_imgs:
-                        number_adherent_cells += 1
-                        adherent_cells.append(AdherentCell(cells[img_number][cell_number].get_position(), img_number,
-                                                           number_consecutive_imgs))
+                            # cell is only considered adherent, if it keeps position on at least 'threshold_imgs' images
+                if number_consecutive_imgs >= threshold_imgs:
+                    number_adherent_cells += 1
+                    adherent_cells.append(AdherentCell(cells[img_number][cell_number].get_position(), img_number,
+                                                       number_consecutive_imgs))
 
-            """calculate total number of adherent_cells by counting all cell objects and subtracting the doubled 
-            adherent_cells (saved in 'adherent_cells_doubles'-list)"""
-            for i in range(len(cells)):
-                for j in range(len(cells[i])):
-                    number_cells_total += 1
-            number_cells_total -= len(adherent_cells_doubles)
+        """calculate total number of adherent_cells by counting all cell objects and subtracting the doubled 
+        adherent_cells (saved in 'adherent_cells_doubles'-list)"""
+        for i in range(len(cells)):
+            for j in range(len(cells[i])):
+                number_cells_total += 1
+        number_cells_total -= len(adherent_cells_doubles)
 
-            if not adherent_cells:  # prevent ValueError if 'adherent_cells'-list is empty
-                return number_adherent_cells, number_cells_total, ["No adherent cells found"]
-            else:
-                return number_adherent_cells, number_cells_total, adherent_cells
+        if not adherent_cells:  # prevent ValueError if 'adherent_cells'-list is empty
+            return number_adherent_cells, number_cells_total, ["No adherent cells found"]
+        else:
+            return number_adherent_cells, number_cells_total, adherent_cells
+
+    @staticmethod
+    def nr_adherent_cells_on_img(adherent_cells, nr_imgs):
+        """
+        Returns how many of the 'adherent_cells' are located on which image
+
+        :param adherent_cells: list
+                    list of 'AdherentCell' objects
+        :param nr_imgs: int
+                    total number of images
+
+        :return: nr_adherent_cells_on_img: array
+                    1-dim array where each element represents one image. 'int' value of element is the number of
+                    adherent cells on the image
+        """
+        # create 1-dim array where default number of adherent cells on each image is 0
+        nr_adherent_cells_on_img = np.zeros((nr_imgs,), dtype=int)
+
+        for cell_number in range(len(adherent_cells)):      # iterate all adherent cells in 'adherent_cells' list
+            cell = adherent_cells[cell_number]              # simplify calling the cell
+            # iterate 'number_appearances'-attribute of the cell to count the appearances for all images
+            for number_appearance in range(cell.get_number_appearances()):
+                # raise the adherent cells counter for the respective image
+                nr_adherent_cells_on_img[cell.get_first_appearance() + number_appearance] += 1
+
+        return nr_adherent_cells_on_img
+
+
 
 
 

@@ -4,6 +4,7 @@ from AdherentCell import AdherentCell
 import skimage.io
 import os.path
 
+
 def get_celldet_params():
     # get parameters for cell detection from user
     while True:
@@ -37,9 +38,10 @@ def get_adhcelldet_parmas(diams):
     images_threshold = imf.time_to_nrimgs(time_for_adherent, delay)
     while True:
         try:
-            compare_threshold = int(input(
-                "tolerance radius for comparing cell positions (pixels, has to be less than {0}): ".format(
-                    min(diams) / 2)))
+            """compare_threshold = int(input(
+                "tolerance radius for comparing cell positions: ".format(
+                    min(diams) / 2)))"""
+            compare_threshold = int(input("tolerance radius for comparing cell positions: "))
             break
         except ValueError:
             print("tolerance radius not valid")
@@ -49,27 +51,46 @@ def get_adhcelldet_parmas(diams):
 def save_params_in_txtfile(txtfile, masks_name, diams_name, time_for_adherent, delay, images_threshold,
                            compare_threshold):
     # save the used masks, diams and parameters in the text file
-    txtfile.write("masks={0}, diams={1}, time_for_adherent[s]={2}, delay[s]={3}, \
-                        images_threshold={4}, compare_threshold={5}\n".format(masks_name, diams_name,
-                                                                              time_for_adherent, delay,
-                                                                              images_threshold,
-                                                                              compare_threshold))
+    txtfile.write("masks={0}, diams={1}, time_for_adherent[s]={2}, delay[s]={3}, images_threshold={4}, \
+    tolerance={5}\n".format(masks_name, diams_name, time_for_adherent, delay, images_threshold, compare_threshold))
 
-def save_adh_in_txtfile(txtfile, number_adherent_cells, number_cells_total, adherent_cells):
+
+def save_adh_in_txtfile(txtfile, number_adherent_cells, number_cells_total, adherent_cells, cells,
+                        nr_adherent_cells_on_img):
     # save the information found about the adherent cells in the text file
+    # number adherent cells
     print("Number adherent cells: ", number_adherent_cells)
     txtfile.write("Number adherent cells: {0}\n".format(number_adherent_cells))
+
+    # number cells total
     print("Number cells total: ", number_cells_total)
     txtfile.write("Number cells total: {0}\n".format(number_cells_total))
-    print("Number generated cell objects: ", Cell.get_cellcounter())
-    txtfile.write("Number generated cell objects: {0}\n\n".format(Cell.get_cellcounter()))
-    print("Adherent cells: ")
-    txtfile.write("Adherent cells: \n\n")
+
+    # number generated Cell objects
+    print("Number generated Cell objects: ", Cell.get_cellcounter())
+    txtfile.write("Number generated Cell objects: {0}\n\n".format(Cell.get_cellcounter()))
+
+    # number cells on first image
+    print("\nNumber cells on first image: {0}".format(len(cells[0])))
+    txtfile.write("\n\nNumber cells on first image: {0}".format(len(cells[0])))
+
+    # number adherent cells on each image
+    print("\nNumber adherent cells on each image: \n")
+    txtfile.write("\n\nNumber adherent cells on each image: \n")
+    for i in range(len(nr_adherent_cells_on_img)):
+        print("    Image {0}:  {1}".format(i, nr_adherent_cells_on_img[i]))
+        txtfile.write("\n    Image {0}:  {1} ".format(i, nr_adherent_cells_on_img[i]))
+
+    # adherent cells
+    print("\n\nAdherent cells: \n")
+    txtfile.write("\n\nAdherent cells: \n\n")
     for i in range(len(adherent_cells)):
-        print(adherent_cells[i])
-        txtfile.write(adherent_cells[i].__str__())
+        print("    {0}".format(adherent_cells[i]))
+        txtfile.write("    {0}".format(adherent_cells[i].__str__()))
         txtfile.write("\n")
-    print("Created AdherentCell-objects: ", AdherentCell.get_adherent_cellcounter())
+
+    # number generated AdherentCell objects
+    print("\nCreated AdherentCell-objects: ", AdherentCell.get_adherent_cellcounter())
     txtfile.write("\n\nCreated AdherentCell-objects: {0}\n".format(AdherentCell.get_adherent_cellcounter()))
 
 
