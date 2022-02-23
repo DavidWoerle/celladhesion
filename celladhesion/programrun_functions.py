@@ -67,8 +67,12 @@ def save_adh_in_txtfile(txtfile, number_adherent_cells, number_cells_total, adhe
     txtfile.write("Number cells total: {0}\n".format(number_cells_total))
 
     # number generated Cell objects
-    print("Number generated Cell objects: ", Cell.get_cellcounter())
-    txtfile.write("Number generated Cell objects: {0}\n\n".format(Cell.get_cellcounter()))
+    cellcounter = 0
+    for img_nr in range(len(cells)):
+        for cell_nr in range(len(cells[img_nr])):
+            cellcounter += 1
+    print("Number generated Cell objects: {0}".format(cellcounter))
+    txtfile.write("Number generated Cell objects: {0}\n\n".format(cellcounter))
 
     # number cells on first image
     print("\nNumber cells on first image: {0}".format(len(cells[0])))
