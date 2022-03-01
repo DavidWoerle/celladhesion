@@ -66,7 +66,7 @@ if new_or_use_or_test == "n":
         overlay = imf.overlay_adherent_squares(overlay, adherent_cells, 30)
 
     # show created images and save them in the subdirectory
-    prf.show_and_save_result_imgs(overlay, path_output_adherent)
+    prf.show_and_save_result_imgs(overlay, path_output_adherent, "celladhesion")
 
 # use already created masks
 elif new_or_use_or_test == "u":
@@ -80,6 +80,7 @@ elif new_or_use_or_test == "u":
     masks = imf.load_masks(os.path.join(path_input, masks_name))
     diams_name = str(input("Name of '.txt'-file with diameters (without ending): ")) + '.txt'
     diams = imf.load_diams(os.path.join(path_input, diams_name))
+
 
     while True:
         # get parameters from user
@@ -116,7 +117,25 @@ elif new_or_use_or_test == "u":
             overlay = imf.overlay_adherent_squares(overlay, adherent_cells, 30)
 
         # show created images and save them in the subdirectory
-        prf.show_and_save_result_imgs(overlay, path_output_adherent)
+        prf.show_and_save_result_imgs(overlay, path_output_adherent, "celladhesion")
+
+        # check if user wants to overlay the adherent cells on an image of the call layer
+        cells_on_phc = input("\nOverlay adherent cells on image of the cell layer? [y / n]: ")
+        if cells_on_phc == "y":
+
+            # get path and image of the cell layer
+            path_phc = input("Path where image of cell layer is saved: ").replace('\\', '/')
+            name_phc = str(input("Name of '.tif'-file of cell layer (without ending): ")) + '.tif'
+            img_phc = imf.read_single_tif(os.path.join(path_phc, name_phc))
+
+            # create new subdirectory for the overlayed images
+            path_output_phc = os.path.join(path_output_adherent, 'celladhesion_overlayPhc')
+            os.mkdir(path_output_phc)
+
+            # overlay adherent cells on the image and save the result images in the directory
+            adh_over_phc, adherent_mask_numbers = imf.adherent_cells_over_phasecontrast(img_phc, masks, adherent_cells)
+            prf.show_and_save_result_imgs(adh_over_phc, path_output_phc, "overlayPhc")
+
 
         # check if user wants to rerun or stop the program
         rerun = input("Rerun? [y / n]: ")
@@ -200,7 +219,81 @@ elif new_or_use_or_test == "m":
         diams_name = 'diams_' + 'cpt' + str(cellprob_threshold[data_nr]) + 'ft' + str(flow_threshold[data_nr])
         Cell.safe_diams(diams, path_output_cells_diams, diams_name)
 
-#elif new_or_use_or_test == "c":
+elif new_or_use_or_test == "c":
+    # get images from user
+    path_imgs = "C:/Users/woerl/Desktop/Test/Phc"
+    imgs = imf.read_tifs(path_imgs)
+
+    # get masks/diams from user
+    path_input = "C:/Users/woerl/Desktop/Test/Phc/celladhesion_cpt0.8ft0.2"
+    masks_name = 'm' + '.npy'
+    masks = imf.load_masks(os.path.join(path_input, masks_name))
+    diams_name = 'd' + '.txt'
+    diams = imf.load_diams(os.path.join(path_input, diams_name))
+
+
+    # get parameters from user
+    time_for_adherent = 60
+    delay = 30
+    images_threshold = 3
+    compare_threshold = 10
+
+    """"# create new subdirectory for the data with the selected time and tolerance
+    path_output_adherent = os.path.join(path_input,
+                                        'time' + str(time_for_adherent) + 's_tolerance' + str(compare_threshold))
+    os.mkdir(path_output_adherent)"""
+
+    # find cells and adherent cells
+    cells = Cell.find_cells_from_masks(masks)
+    number_adherent_cells, number_cells_total, adherent_cells = AdherentCell.find_adherent_cells(cells, diams,
+                                                                                                 images_threshold,
+                                                                                               compare_threshold)
+    """"# find number of adherent cells on each image
+    nr_adherent_cells_on_img = AdherentCell.nr_adherent_cells_on_img(adherent_cells, len(imgs))
+
+    # create '.txt'-file to save the data
+    txtfile = open(
+        os.path.join(path_output_adherent, 'celladhesion_' + 'time' + str(time_for_adherent) + 's_tolerance'
+                     + str(compare_threshold) + '.txt'), 'w+')
+
+    # save the used masks, diams and parameters in the text file
+    prf.save_params_in_txtfile(txtfile, masks_name, diams_name, time_for_adherent, delay, images_threshold,
+                               compare_threshold)
+
+    # save the found information about the adherent cells in the text file
+    prf.save_adh_in_txtfile(txtfile, number_adherent_cells, number_cells_total, adherent_cells, cells,
+                            nr_adherent_cells_on_img)
+
+    # overlay outlines of the detected cells on the input images and mark the adherent cells
+    overlay = imf.overlay_outlines(imgs, masks)
+    # 'overlay_adherent_squares' can only be done if list contains 'adherent_cell'-objects
+    if isinstance(adherent_cells[0], AdherentCell):
+        overlay = imf.overlay_adherent_squares(overlay, adherent_cells, 30)
+
+    # show created images and save them in the subdirectory
+    prf.show_and_save_result_imgs(overlay, path_output_adherent, "celladhesion")
+
+    # check if user wants to overlay the adherent cells on an image of the call layer
+    cells_on_phc = input("\nOverlay adherent cells on image of the cell layer? [y / n]: ")
+    if cells_on_phc == "y": """
+
+    # get path and image of the cell layer
+    path_phc = "C:/Users/woerl/Desktop/Test"
+    name_phc = "Rasen" + '.tif'
+    img_phc = imf.read_single_tif(os.path.join(path_phc, name_phc))
+
+    """# create new subdirectory for the overlayed images
+    path_output_phc = os.path.join(path_output_adherent, 'celladhesion_overlayPhc')
+    os.mkdir(path_output_phc)"""
+
+    # overlay adherent cells on the image and save the result images in the directory
+    adh_over_phc, adherent_mask_numbers = imf.adherent_cells_over_phasecontrast(img_phc, masks, adherent_cells)
+    #prf.show_and_save_result_imgs(adh_over_phc, path_output_phc, "overlayPhc")
+    print(adherent_mask_numbers[0])
+    print(adherent_mask_numbers[1])
+    print(len(adherent_mask_numbers[0]))
+    print(len(adherent_mask_numbers))
+
 
 
 

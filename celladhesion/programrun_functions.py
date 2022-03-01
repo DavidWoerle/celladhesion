@@ -98,10 +98,10 @@ def save_adh_in_txtfile(txtfile, number_adherent_cells, number_cells_total, adhe
     txtfile.write("\n\nCreated AdherentCell-objects: {0}\n".format(AdherentCell.get_adherent_cellcounter()))
 
 
-def show_and_save_result_imgs(imgs, path):
-    # show images and save them in the directory
+def show_and_save_result_imgs(imgs, path, name):
+    # show images and save them in the directory under a given name
     for i in range(len(imgs)):
         skimage.io.imshow(imgs[i])
         skimage.io.show()
-        filename = "celladhesion" + str(i) + ".jpg"
+        filename = name + str(i) + ".jpg"
         skimage.io.imsave(os.path.join(path, filename), skimage.util.img_as_ubyte(imgs[i]))
