@@ -98,10 +98,21 @@ def save_adh_in_txtfile(txtfile, number_adherent_cells, number_cells_total, adhe
     txtfile.write("\n\nCreated AdherentCell-objects: {0}\n".format(AdherentCell.get_adherent_cellcounter()))
 
 
+def save_confluence_in_txtfile(txtfile, cellprob_threshold_layer, flow_threshold_layer, confluence):
+    print("confluence: {0}%".format(confluence))
+    txtfile.write("\n\n\nConfluence (cpt={0}, ft={1}): {2}%".format(cellprob_threshold_layer, flow_threshold_layer,
+                                                                    confluence))
+
 def show_and_save_result_imgs(imgs, path, name):
     # show images and save them in the directory under a given name
-    for i in range(len(imgs)):
-        skimage.io.imshow(imgs[i])
+    if isinstance(imgs, list):
+        for i in range(len(imgs)):
+            skimage.io.imshow(imgs[i])
+            skimage.io.show()
+            filename = name + str(i) + ".jpg"
+            skimage.io.imsave(os.path.join(path, filename), skimage.util.img_as_ubyte(imgs[i]))
+    else:
+        skimage.io.imshow(imgs)
         skimage.io.show()
-        filename = name + str(i) + ".jpg"
-        skimage.io.imsave(os.path.join(path, filename), skimage.util.img_as_ubyte(imgs[i]))
+        filename = name + ".jpg"
+        skimage.io.imsave(os.path.join(path, filename), skimage.util.img_as_ubyte(imgs))

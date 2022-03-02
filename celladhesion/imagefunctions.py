@@ -78,24 +78,40 @@ def overlay_outlines(imgs, masks):
     :return overlay: list of RGB images
                 RGB images with red outlines
     """
+    if isinstance(imgs, list):
+        overlay = list()
 
-    overlay = list()
+        for img_number in range(len(imgs)):     # iterate all images in 'imgs'
+            # Create outlines of the masks with 'find_boundaries' function from 'skimage' package:
+            outlines = skimage.segmentation.find_boundaries(masks[img_number], mode='outer').astype(np.uint8)
+            # Check if image is already RGB
+            if len(imgs[img_number].shape) != 3:
+                # convert image to RGB, divide by maximum value to show image in full range:
+                img_rgb = np.stack((imgs[img_number] / imgs[img_number].max(),)*3, axis=-1)
+            else:
+                img_rgb = imgs[img_number] / imgs[img_number].max()
+            # iterate over every pixel and set colour of image to red, if pixel is part of an outline:
+            for y in range(masks[img_number].shape[0]):
+                for x in range(masks[img_number].shape[1]):
+                    if outlines[y][x] == 1:
+                        img_rgb[y][x] = [1.0, 0, 0]
+            overlay.append(img_rgb)     # add new image with outlines to list
+        return overlay
 
-    for img_number in range(len(imgs)):     # iterate all images in 'imgs'
-        # Create outlines of the masks with 'find_boundaries' function from 'skimage' package:
-        outlines = skimage.segmentation.find_boundaries(masks[img_number], mode='outer').astype(np.uint8)
+    else:
+        outlines = skimage.segmentation.find_boundaries(masks, mode='outer').astype(np.uint8)
         # Check if image is already RGB
-        if len(imgs[img_number].shape) != 3:
+        if len(imgs.shape) != 3:
             # convert image to RGB, divide by maximum value to show image in full range:
-            img_rgb = np.stack((imgs[img_number] / imgs[img_number].max(),)*3, axis=-1)
+            img_rgb = np.stack((imgs / imgs.max(),) * 3, axis=-1)
         else:
-            img_rgb = imgs[img_number] / imgs[img_number].max()
+            img_rgb = imgs / imgs.max()
         # iterate over every pixel and set colour of image to red, if pixel is part of an outline:
-        for y in range(masks[img_number].shape[0]):
-            for x in range(masks[img_number].shape[1]):
+        for y in range(masks.shape[0]):
+            for x in range(masks.shape[1]):
                 if outlines[y][x] == 1:
                     img_rgb[y][x] = [1.0, 0, 0]
-        overlay.append(img_rgb)     # add new image with outlines to list
+        overlay = img_rgb  # add new image with outlines to list
     return overlay
 
 
@@ -188,27 +204,40 @@ def filter_masks(masks, adherent_cells):
             mask_nr = masks[first_app + consecutive_img_number][pos[1]][pos[0]]
             adherent_mask_numbers[first_app + consecutive_img_number].append(mask_nr)"""
 
+    # create list where the mask numbers belonging to adherent cells for each image will be safed
     adherent_mask_numbers = list()
 
-    for img_nr in range(len(masks)):
-        temp_list = [0]
-        for cell_nr in range(len(adherent_cells)):
+    # create copy of masks that will be edited
+    filtered_masks = masks
+
+    for img_nr in range(len(masks)):    # iterate all images/masks of all images
+        temp_list = [0]                 # temporary list to safe adherent mask numbers for one image
+        for cell_nr in range(len(adherent_cells)):  # iterate all adherent cells
             cell = adherent_cells[cell_nr]
             first_app = cell.get_first_appearance()
+            # iterate all appearances of an adherent cell
             for consecutive_img_number in range(cell.get_number_appearances()):
+                # check, if the image number of the current appearance equals the image number (outer iteration)
                 if img_nr == first_app + consecutive_img_number:
+                    # if yes, get position of the adherent cell
                     pos = cell.get_position()
+                    # get number (pixel value) of the related mask
                     mask_nr = masks[first_app + consecutive_img_number][pos[1]][pos[0]]
+                    # add number to the temporary list
                     temp_list.append(mask_nr)
+        # add temporary list to adherent_mask_numbers list
         adherent_mask_numbers.append(temp_list)
 
-    for img_nr in range(len(masks)):
-        for y in range(masks[img_nr].shape[0]):
-            for x in range(masks[img_nr].shape[1]):
-                if masks[img_nr][y][x] not in adherent_mask_numbers[img_nr]:
-                    masks[img_nr][y][x] = 0
+    # iterate all images
+    for img_nr in range(len(filtered_masks)):
+        # iterate all pixels on image
+        for y in range(filtered_masks[img_nr].shape[0]):
+            for x in range(filtered_masks[img_nr].shape[1]):
+                # if value at pixel (mask) does not belong to an adherent mask, delete the mask pixel (set value to 0)
+                if filtered_masks[img_nr][y][x] not in adherent_mask_numbers[img_nr]:
+                    filtered_masks[img_nr][y][x] = 0
 
-    return masks, adherent_mask_numbers
+    return filtered_masks
 
 
 def adherent_cells_over_phasecontrast(phc_img, masks, adherent_cells):
@@ -225,13 +254,13 @@ def adherent_cells_over_phasecontrast(phc_img, masks, adherent_cells):
                 RGB images with red outline where adherent cells are located
     """
 
-    adherent_masks, adherent_mask_numbers = filter_masks(masks, adherent_cells)
+    adherent_masks = filter_masks(masks, adherent_cells)
     imgs = list()
     for i in range(len(masks)):
         imgs.append(phc_img)
     adh_over_phc = overlay_outlines(imgs, adherent_masks)
 
-    return adh_over_phc, adherent_mask_numbers
+    return adh_over_phc
 
         
 

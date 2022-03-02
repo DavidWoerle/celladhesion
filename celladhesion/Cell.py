@@ -290,7 +290,7 @@ class Cell:
 
     @staticmethod
     def determine_confluence(img, flow_threshold=0.4, cellprob_threshold=0.0, diameter=None, model_type='cyto',
-                             min_size = 15):
+                             min_size=15):
         """
         Determines the confluence (percentage of the surface of a culture dish that is covered by adherent cells) of the
         cells on the image 'img'
@@ -318,7 +318,7 @@ class Cell:
         """ cellpose returns 'masks': list of 2D arrays; labelled 
                     image, where 0=no masks; 1,2,...=mask labels """
         model = cellpose.models.Cellpose(gpu=False, model_type=model_type)
-        mask, flows, styles, diams = model.eval(img, diameter=diameter, channels=[0, 0],flow_threshold=flow_threshold,
+        mask, flows, styles, diams = model.eval(img, diameter=diameter, channels=[0, 0], flow_threshold=flow_threshold,
                                                 cellprob_threshold=cellprob_threshold, do_3D=False, min_size=min_size)
 
         pixels = 0              # total number of pixels
@@ -329,7 +329,7 @@ class Cell:
                 pixels += 1                     # count pixels
                 if mask[y][x] != 0:             # if mask pixel, increase pixel_cells counter
                     pixels_cells += 1
-        confluence = int(round((pixels_cells / pixels)) * 100)      # calculate confluence
+        confluence = round((pixels_cells / pixels) * 100)   # calculate confluence
 
         return mask, confluence
 
