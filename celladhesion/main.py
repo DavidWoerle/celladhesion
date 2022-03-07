@@ -1,5 +1,8 @@
 import os
 
+import glob
+from PIL import Image
+
 import cellpose.plot
 import matplotlib.pyplot as plt
 import imagefunctions as imf
@@ -110,6 +113,9 @@ elif new_or_use_or_test == "u":
         # save the found information about the adherent cells in the text file
         prf.save_adh_in_txtfile(txtfile, number_adherent_cells, number_cells_total, adherent_cells, cells,
                                 nr_adherent_cells_on_img)
+
+        # save number of adherent cells on image in a '.csv'-file
+        prf.number_adh_on_image_to_csv(nr_adherent_cells_on_img, os.path.join(path_output_adherent, 'adh_on_img.csv'))
 
         # overlay outlines of the detected cells on the input images and mark the adherent cells
         overlay = imf.overlay_outlines(imgs, masks)
@@ -260,6 +266,9 @@ elif new_or_use_or_test == "c":
     # plot masks over image and show/save the result
     img_output = cellpose.plot.mask_overlay(img_phc, mask)
     prf.show_and_save_result_imgs(img_output, path_phc, "confluence_" + str(confluence) + "_ "+ name_output)
+
+
+    #prf.number_adh_on_image_to_csv(diams, os.path.join(path_input, 'test.csv'))
 
 
 

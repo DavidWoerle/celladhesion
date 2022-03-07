@@ -1,8 +1,8 @@
 import imagefunctions as imf
-from Cell import Cell
 from AdherentCell import AdherentCell
 import skimage.io
 import os.path
+import csv
 
 
 def get_celldet_params():
@@ -116,3 +116,12 @@ def show_and_save_result_imgs(imgs, path, name):
         skimage.io.show()
         filename = name + ".jpg"
         skimage.io.imsave(os.path.join(path, filename), skimage.util.img_as_ubyte(imgs))
+
+
+def number_adh_on_image_to_csv(nr_adherent_cells_on_img, path):
+
+    with open(path, 'w', newline='') as csv_1:
+        csv_out = csv.writer(csv_1)
+        csv_out.writerows([nr_adherent_cells_on_img[index]] for index in range(0, len(nr_adherent_cells_on_img)))
+
+
