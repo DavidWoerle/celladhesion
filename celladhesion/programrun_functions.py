@@ -119,7 +119,7 @@ def show_and_save_result_imgs(imgs, path, name):
 
 
 def number_adh_on_image_to_csv(nr_adherent_cells_on_img, path):
-
+    # saves the nr_adherent_cells_on_img ('int'-list) in csv file
     with open(path, 'w', newline='') as csv_1:
         csv_out = csv.writer(csv_1)
         csv_out.writerows([nr_adherent_cells_on_img[index]] for index in range(0, len(nr_adherent_cells_on_img)))
