@@ -5,7 +5,6 @@ import numpy as np
 import cv2
 
 
-
 def read_tifs(folder):
     """
     Reads '.tif'-files from the given folder
@@ -37,14 +36,16 @@ def read_test_tifs():
 
     return imgs
 
+
 def read_single_tif(path):
     # Read a single '.tif' image from given path
     img = skimage.io.imread(path)
     return img
 
+
 def load_masks(path):
     # load '.npy' masks from given path
-    masks = np.load(path)
+    masks = np.load(path, allow_pickle=True)
     return masks
 
 
@@ -204,7 +205,7 @@ def filter_masks(masks, adherent_cells):
             mask_nr = masks[first_app + consecutive_img_number][pos[1]][pos[0]]
             adherent_mask_numbers[first_app + consecutive_img_number].append(mask_nr)"""
 
-    # create list where the mask numbers belonging to adherent cells for each image will be safed
+    # create list where the mask numbers belonging to adherent cells for each image will be saved
     adherent_mask_numbers = list()
 
     # create copy of masks that will be edited

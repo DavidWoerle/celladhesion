@@ -103,6 +103,7 @@ def save_confluence_in_txtfile(txtfile, cellprob_threshold_layer, flow_threshold
     txtfile.write("\n\n\nConfluence (cpt={0}, ft={1}): {2}%".format(cellprob_threshold_layer, flow_threshold_layer,
                                                                     confluence))
 
+
 def show_and_save_result_imgs(imgs, path, name):
     # show images and save them in the directory under a given name
     if isinstance(imgs, list):

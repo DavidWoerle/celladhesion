@@ -9,7 +9,7 @@ class AdherentCell(Cell):
     """
     adherent_cellcounter = 0  # number of created 'AdherentCell'- objects
 
-    def __init__(self, pos, first_appearance, number_appearances):
+    def __init__(self, pos, radius, first_appearance, number_appearances):
         """
 
         :param pos: array
@@ -20,7 +20,7 @@ class AdherentCell(Cell):
         :param number_appearances: int
                 number of consecutive images where adherent cell is detected
         """
-        super().__init__(pos)
+        super().__init__(pos, radius)
         self.__first_appearance = first_appearance
         self.__number_appearances = number_appearances
 
@@ -47,7 +47,8 @@ class AdherentCell(Cell):
         return AdherentCell.adherent_cellcounter
 
     def __str__(self):
-        return "Pos.: {0}, Imgnr. first appearance: {1}, Nr. appearances: {2}".format(self.get_position(),
+        return "Pos.: {0}, Radius: {1}, Imgnr. first appearance: {2}, Nr. appearances: {3}".format(self.get_position(),
+                                                                                                   self.get_radius(),
                                                                                       self.get_first_appearance(),
                                                                                       self.get_number_appearances())
 
@@ -125,7 +126,8 @@ class AdherentCell(Cell):
                 # cell is only considered adherent, if it keeps position on at least 'threshold_imgs' images
                 if number_consecutive_imgs >= threshold_imgs:
                     number_adherent_cells += 1
-                    adherent_cells.append(AdherentCell(cells[img_number][cell_number].get_position(), img_number,
+                    adherent_cells.append(AdherentCell(cells[img_number][cell_number].get_position(),
+                                                       cells[img_number][cell_number].get_radius(), img_number,
                                                        number_consecutive_imgs))
 
         """calculate total number of adherent_cells by counting all cell objects and subtracting the doubled 
@@ -259,6 +261,9 @@ class AdherentCell(Cell):
                 nr_adherent_cells_on_img[cell.get_first_appearance() + number_appearance] += 1
 
         return nr_adherent_cells_on_img
+
+
+
 
 
 

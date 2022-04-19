@@ -8,16 +8,19 @@ class Cell:
     """ Object 'Cell' for each mask returned by 'cellpose' representing one cell """
     cellcounter = 0   # number of created 'Cell'-objects
 
-    def __init__(self, pos):
+    def __init__(self, pos, radius):
         """
         creates Object 'Cell' with given parameters
 
         :param pos: array
                 1-dim array representing pixel positions x and y of cell center: [x, y] (x and y: int)
+        :param radius: int
+                radius of the cell
 
         """
 
         self.__position = pos
+        self.__radius = radius
 
         Cell.cellcounter += 1
 
@@ -26,6 +29,12 @@ class Cell:
 
     def set_position(self, pos):
         self.__position = pos
+
+    def get_radius(self):
+        return  self.__radius
+
+    def set_radius(self, radius):
+        self.__radius = radius
 
     @staticmethod
     def reset_cellcounter():
@@ -36,7 +45,12 @@ class Cell:
         return Cell.cellcounter
 
     def __str__(self):
-        return "Pos.: {0}".format(self.__position)
+        return "Pos.: {0}, Radius: {1}".format(self.get_position(), self.get_radius())
+
+    @staticmethod
+    def calculate_radius(number_pixels):
+        # calculates the radius of an approximately round cell with an area of 'number_pixels'
+        return int(round(np.sqrt(number_pixels / np.pi)))
 
 
     """   OLD VERSION
@@ -157,7 +171,8 @@ class Cell:
 
             for i in range(1, number_of_cells + 1):         # create position array with center pos for each cell/mask
                 pos = np.array([int(round(x_tot[i] / pixel_counter[i])), int(round(y_tot[i] / pixel_counter[i]))])
-                cells_on_img.append(Cell(pos))           # add to temporary list for each image
+                radius = Cell.calculate_radius(pixel_counter[i])
+                cells_on_img.append(Cell(pos, radius))           # add to temporary list for each image
             cells.append(cells_on_img)                      # add to complete cells list
 
         return cells, diams, masks
@@ -215,7 +230,8 @@ class Cell:
 
             for i in range(1, number_of_cells + 1):         # create position array with center pos for each cell/mask
                 pos = np.array([int(round(x_tot[i] / pixel_counter[i])), int(round(y_tot[i] / pixel_counter[i]))])
-                cells_on_img.append(Cell(pos))           # add to temporary list for each image
+                radius = Cell.calculate_radius(pixel_counter[i])
+                cells_on_img.append(Cell(pos, radius))           # add to temporary list for each image
             cells.append(cells_on_img)                      # add to complete cells list
 
         return cells, diams, masks
@@ -283,7 +299,8 @@ class Cell:
 
             for i in range(1, number_of_cells + 1):  # create position array with center pos for each cell/mask
                 pos = np.array([int(round(x_tot[i] / pixel_counter[i])), int(round(y_tot[i] / pixel_counter[i]))])
-                cells_on_img.append(Cell(pos))  # add to temporary list for each image
+                radius = Cell.calculate_radius(pixel_counter[i])
+                cells_on_img.append(Cell(pos, radius))  # add to temporary list for each image
             cells.append(cells_on_img)  # add to complete cells list
 
         return cells
@@ -332,6 +349,46 @@ class Cell:
         confluence = round((pixels_cells / pixels) * 100)   # calculate confluence
 
         return mask, confluence
+
+    @staticmethod
+    def filter_for_position(cells, background_mask):
+        """
+        Filters an given 'cells' list, so that only those cells that have the same position as the cells on an
+        'background_mask' will remain. Use this function to consider cell adhesion only for those cells, that have a
+        certain position, determined by the background mask.
+
+        :param cells: list
+                list containing cell objects: list[cell_index]
+        :param background_mask: 2D array; labelled
+                image, where 0=no masks; 1,2,...=mask labels
+        :return: filtered_cells: list
+                list containing only the cells whose position matches the background mask
+
+        """
+
+        filtered_cells = list()     # new list for the results
+
+        for cell_nr in range(len(cells)):       # iterate all cells
+            cell = cells[cell_nr]               # simplify cell call
+            # check if the center of the cell already matches the background mask
+            if background_mask[cell.get_position()[1]][cell.get_position()[0]] != 0:
+                filtered_cells.append(cells[cell_nr])       # if yes, add the cell to the result list
+            else:
+                radius = cell.get_radius()      # simplify radius call
+                # iterate over all pixels in a square around the cell (side length: 2 * cell_radius)
+                for y in range(cell.get_position()[1] - radius, cell.get_position()[1] + radius):
+                    for x in range(cell.get_position()[0] - radius, cell.get_position()[0] + radius):
+                        if (y - cell.get_position()[1]) ** 2 + (x - cell.get_position()[0]) ** 2 <= radius:
+                            # make sure the pixel is part of the background img (relevant for cells on edges of the img)
+                            if (0 <= y <= background_mask.shape[0]) and (0 <= x <= background_mask.shape[1]):
+                                # if the position of the pixel matches a mask pixel, add the cell to list
+                                if background_mask[y][x] != 0:
+                                    filtered_cells.append(cells[cell_nr])
+
+        return filtered_cells
+
+
+
 
 
 
