@@ -107,14 +107,9 @@ class Cell:
     """
 
 
-
-
-
     @staticmethod
-    def find_cells(imgs, flow_threshold=0.4, cellprob_threshold=0.0, diameter=None, model_type='cyto', min_size = 15):
-        """
-        Uses 'cellpose' to find masks on images 'imgs' where each mask represents one cell and returns
-        list of 'Cell' objects
+    def run_cellpose(imgs, flow_threshold=0.4, cellprob_threshold=0.0, diameter=None, model_type='cyto', min_size=15):
+        """ Uses Uses 'cellpose' to find masks on images 'imgs' where each mask represents one cell
 
         :param imgs: list
                 containing 'ndarray' of each image
@@ -130,25 +125,33 @@ class Cell:
         :param min_size: int
                 minimum number of pixels per mask, can turn off with -1
 
-        :return cells: list
-                list containing cell objects for each image: list[img_index][cell_index]
-        :return diams: list
-                list of cell diameters (float)
         :return masks: list of 2D arrays; labelled
                 image, where 0=no masks; 1,2,...=mask labels
+        :return diams: list
+                list of cell diameters (float)
         """
-
-        """ cellpose returns 'masks': list of 2D arrays; labelled 
-            image, where 0=no masks; 1,2,...=mask labels """
 
         model = cellpose.models.Cellpose(gpu=False, model_type=model_type)
         masks, flows, styles, diams = model.eval(imgs, diameter=diameter, channels=[0, 0],
                                                  flow_threshold=flow_threshold,
                                                  cellprob_threshold=cellprob_threshold, do_3D=False, min_size=min_size)
-
         # change data types
-        diams = [float(i) for i in diams]
         masks = np.asarray(masks)
+        diams = [float(i) for i in diams]
+
+        return masks, diams
+
+    @staticmethod
+    def find_cells(masks):
+        """
+        Creates 'Cell' object for each cellpose mask and returns them as a list item
+
+       :param masks: list of 2D arrays; labelled
+                image, where 0=no masks; 1,2,...=mask labels
+
+        :return cells: list
+                list containing cell objects for each image: list[img_index][cell_index]
+        """
 
         Cell.reset_cellcounter()  # reset cellcounter every time the method is called
         cells = list()
@@ -175,66 +178,7 @@ class Cell:
                 cells_on_img.append(Cell(pos, radius))           # add to temporary list for each image
             cells.append(cells_on_img)                      # add to complete cells list
 
-        return cells, diams, masks
-
-
-
-
-
-    @staticmethod
-    def find_cells_test(flow_threshold=0.4, diameter=None, model_type='cyto'):
-        """
-        Uses 'cellpose' to find masks on images 'imgs' where each mask represents one cell and returns
-        list of 'Cell' objects
-
-        :param imgs: list
-                containing 'ndarray' of each image
-        :param flow_threshold: float (optional, default 0.4)
-                flow error threshold (all adherent_cells with errors below threshold are kept)
-        :param diameter: float (optional, default None)
-                diameter for each image (only used if rescale is None),
-                if diameter is None, set to diam_mean
-        :param model_type: str (optional, default 'cyto')
-                'cyto'=cytoplasm model; 'nuclei'=nucleus model
-        :return cells: list
-                list containing cell objects for each image: list[img_index][cell_index]
-        :return diams: list
-                list of cell diameters (float)
-        :return masks: list of 2D arrays
-        labelled image, where 0=no masks; 1,2,...=mask labels
-        """
-
-        """ cellpose returns 'masks': list of 2D arrays; labelled 
-            image, where 0=no masks; 1,2,...=mask labels """
-
-        masks = imf.load_test_masks()
-        diams = imf.load_test_diams()
-        diams = [float(i) for i in diams]
-
-        Cell.reset_cellcounter()  # reset cellcounter every time the method is called
-        cells = list()
-
-        for img_index in range(masks.shape[0]):             # walk through all images in 'imgs'
-            cells_on_img = list()                           # temporary list object for each image
-            number_of_cells = masks[img_index].max()        # number of cells (=highest mask label)
-            x_tot = np.zeros(number_of_cells + 1)           # arrays to calculate center of cell
-            y_tot = np.zeros(number_of_cells + 1)
-            pixel_counter = np.zeros(number_of_cells + 1)
-            for y in range(masks[img_index].shape[0]):      # walk every pixel
-                for x in range(masks[img_index].shape[1]):
-                    vap = masks[img_index][y][x]            # value at pixel
-                    if vap != 0:                            # if mask-pixel, add position to 'y_tot' and 'x_total' , index is mask-label number
-                        y_tot[vap] += y
-                        x_tot[vap] += x
-                        pixel_counter[vap] += 1
-
-            for i in range(1, number_of_cells + 1):         # create position array with center pos for each cell/mask
-                pos = np.array([int(round(x_tot[i] / pixel_counter[i])), int(round(y_tot[i] / pixel_counter[i]))])
-                radius = Cell.calculate_radius(pixel_counter[i])
-                cells_on_img.append(Cell(pos, radius))           # add to temporary list for each image
-            cells.append(cells_on_img)                      # add to complete cells list
-
-        return cells, diams, masks
+        return cells
 
     def compare(self, cell2, tolerance):
         """ Checks if position of two 'Cell'-objects match within given 'tolerance' radius:
@@ -272,71 +216,17 @@ class Cell:
         txtfile.write("\n".join(str(item) for item in diams))
 
     @staticmethod
-    def find_cells_from_masks(masks):
-        """ Find and create 'Cell'-objects from the given masks
-        :param masks: list of 2D arrays
-                labelled image, where 0=no masks; 1,2,...=mask labels
-        :return cells: list
-                list containing cell objects for each image: list[img_index][cell_index]
-        """
-
-        Cell.reset_cellcounter()  # reset cellcounter every time the method is called
-        cells = list()
-
-        for img_index in range(masks.shape[0]):  # walk through all images in 'masks'
-            cells_on_img = list()  # temporary list object for each image
-            number_of_cells = masks[img_index].max()  # number of cells (=highest mask label)
-            x_tot = np.zeros(number_of_cells + 1)  # arrays to calculate center of cell
-            y_tot = np.zeros(number_of_cells + 1)
-            pixel_counter = np.zeros(number_of_cells + 1)
-            for y in range(masks[img_index].shape[0]):  # walk every pixel
-                for x in range(masks[img_index].shape[1]):
-                    vap = masks[img_index][y][x]  # value at pixel
-                    if vap != 0:  # if mask-pixel, add position to 'y_tot' and 'x_total' , index is mask-label number
-                        y_tot[vap] += y
-                        x_tot[vap] += x
-                        pixel_counter[vap] += 1
-
-            for i in range(1, number_of_cells + 1):  # create position array with center pos for each cell/mask
-                pos = np.array([int(round(x_tot[i] / pixel_counter[i])), int(round(y_tot[i] / pixel_counter[i]))])
-                radius = Cell.calculate_radius(pixel_counter[i])
-                cells_on_img.append(Cell(pos, radius))  # add to temporary list for each image
-            cells.append(cells_on_img)  # add to complete cells list
-
-        return cells
-
-    @staticmethod
-    def determine_confluence(img, flow_threshold=0.4, cellprob_threshold=0.0, diameter=None, model_type='cyto',
-                             min_size=15):
+    def determine_confluence(mask):
         """
         Determines the confluence (percentage of the surface of a culture dish that is covered by adherent cells) of the
-        cells on the image 'img'
+        cells, represented by the mask
 
-        :param img: ndarray
-                image on which cells will be searched
-        :param flow_threshold: float (optional, default 0.4)
-                flow error threshold (all adherent_cells with errors below threshold are kept)
-        :param cellprob_threshold: float (optional, default 0.0)
-                cell probability threshold (all pixels with prob above threshold kept for masks)
-        :param diameter: float (optional, default None)
-                diameter for each image (only used if rescale is None),
-                if diameter is None, set to diam_mean
-        :param model_type: str (optional, default 'cyto')
-                'cyto'=cytoplasm model; 'nuclei'=nucleus model
-        :param min_size: int
-                minimum number of pixels per mask, can turn off with -1
-
-        :return mask: 2D array; labelled
+        :param mask: 2D array; labelled
                 image, where 0=no masks; 1,2,...=mask labels
+
         :return confluence: int
                 confluence of cells on img, given in percent
         """
-
-        """ cellpose returns 'masks': list of 2D arrays; labelled 
-                    image, where 0=no masks; 1,2,...=mask labels """
-        model = cellpose.models.Cellpose(gpu=False, model_type=model_type)
-        mask, flows, styles, diams = model.eval(img, diameter=diameter, channels=[0, 0], flow_threshold=flow_threshold,
-                                                cellprob_threshold=cellprob_threshold, do_3D=False, min_size=min_size)
 
         pixels = 0              # total number of pixels
         pixels_cells = 0        # number of pixels belonging to a cell (mask)
@@ -348,7 +238,7 @@ class Cell:
                     pixels_cells += 1
         confluence = round((pixels_cells / pixels) * 100)   # calculate confluence
 
-        return mask, confluence
+        return confluence
 
     @staticmethod
     def filter_for_position(cells, background_mask):

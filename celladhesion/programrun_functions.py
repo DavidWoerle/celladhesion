@@ -1,11 +1,67 @@
+import json
+
 import imagefunctions as imf
 from AdherentCell import AdherentCell
 import skimage.io
 import os.path
 import csv
+import config
 
 
-def get_celldet_params():
+def change_celldet_params():
+    with open("config.json", "r") as jsonFile:
+        config = json.load(jsonFile)
+
+    while True:
+        try:
+            config["celldet"]["cellprob_threshold"] = float(input("cellprob_threshold (between 0.0 and 1.0, higher: less masks will be found): "))
+            break
+        except ValueError:
+            print("cellprob_threshold not valid")
+    while True:
+        try:
+            config["celldet"]["flow_threshold"] = float(input("flow_threshold (between 0.0 and 1.0, lower: less masks will be found): "))
+            break
+        except ValueError:
+            print("flow_threshold not valid")
+
+    with open("config.json", "w") as jsonFile:
+        json.dump(config, jsonFile)
+    jsonFile.close()
+
+
+def change_adhcelldet_params():
+    with open("config.json", "r") as jsonFile:
+        config = json.load(jsonFile)
+
+    while True:
+        try:
+            config["adhcelldet"]["time_for_adherent[s]"] = float(input("time [s] to be detected as adherent: "))
+            break
+        except ValueError:
+            print("time not valid")
+    while True:
+        try:
+            config["adhcelldet"]["delay[s]"] = float(input("delay [s] between images: "))
+            break
+        except ValueError:
+            print("delay not valid")
+
+    config["adhcelldet"]["images_threshold"] = imf.time_to_nrimgs(config["adhcelldet"]["time_for_adherent[s]"],
+                                                               config["adhcelldet"]["delay[s]"])
+    while True:
+        try:
+            config["adhcelldet"]["tolerance"] = int(input("tolerance radius for comparing cell positions: "))
+            break
+        except ValueError:
+            print("tolerance radius not valid")
+
+    with open("config.json", "w") as jsonFile:
+        json.dump(config, jsonFile)
+    jsonFile.close()
+
+
+"""def get_celldet_params():
     # get parameters for cell detection from user
     while True:
         try:
@@ -19,9 +75,13 @@ def get_celldet_params():
             break
         except ValueError:
             print("flow_threshold not valid")
-    return cellprob_threshold, flow_threshold
+    return cellprob_threshold, flow_threshold"""
 
-def get_adhcelldet_parmas(diams):
+
+
+
+
+"""def get_adhcelldet_params(diams):
     # get parameters for adherent-cell detection from user
     while True:
         try:
@@ -38,15 +98,16 @@ def get_adhcelldet_parmas(diams):
     images_threshold = imf.time_to_nrimgs(time_for_adherent, delay)
     while True:
         try:
-            """compare_threshold = int(input(
+            """"""compare_threshold = int(input(
                 "tolerance radius for comparing cell positions: ".format(
-                    min(diams) / 2)))"""
+                    min(diams) / 2)))""""""
             compare_threshold = int(input("tolerance radius for comparing cell positions: "))
             break
         except ValueError:
             print("tolerance radius not valid")
 
-    return time_for_adherent, delay, images_threshold, compare_threshold
+    return time_for_adherent, delay, images_threshold, compare_threshold"""
+
 
 def save_params_in_txtfile(txtfile, masks_name, diams_name, time_for_adherent, delay, images_threshold,
                            compare_threshold):

@@ -32,14 +32,15 @@ if new_or_use_or_test == "n":
     os.mkdir(path_output_cells_diams)
 
     # run 'find_cells' method and save masks and diams (names: include 'cellprob_threshold' and 'flow_threshold')
-    cells, diams, masks = Cell.find_cells(imgs, cellprob_threshold=cellprob_threshold, flow_threshold=flow_threshold)
+    masks, diams = Cell.run_cellpose(imgs, cellprob_threshold=cellprob_threshold, flow_threshold=flow_threshold)
+    cells = Cell.find_cells(masks)
     masks_name = 'masks_' + 'cpt' + str(cellprob_threshold) + 'ft' + str(flow_threshold)
     Cell.safe_masks(masks, path_output_cells_diams, masks_name)
     diams_name = 'diams_' + 'cpt' + str(cellprob_threshold) + 'ft' + str(flow_threshold)
     Cell.safe_diams(diams, path_output_cells_diams, diams_name)
 
     # get parameters for adherent-cell detection from user
-    time_for_adherent, delay, images_threshold, compare_threshold = prf.get_adhcelldet_parmas(diams)
+    time_for_adherent, delay, images_threshold, compare_threshold = prf.get_adhcelldet_params(diams)
 
     # search adherent cells
     number_adherent_cells, number_cells_total, adherent_cells = AdherentCell.find_adherent_cells(cells, diams,
@@ -88,14 +89,14 @@ elif new_or_use_or_test == "u":
 
     while True:
         # get parameters from user
-        time_for_adherent, delay, images_threshold, compare_threshold = prf.get_adhcelldet_parmas(diams)
+        time_for_adherent, delay, images_threshold, compare_threshold = prf.get_adhcelldet_params(diams)
 
         # create new subdirectory for the data with the selected time and tolerance
         path_output_adherent = os.path.join(path_input, 'time' + str(time_for_adherent) + 's_tolerance' + str(compare_threshold))
         os.mkdir(path_output_adherent)
 
         # find cells and adherent cells
-        cells = Cell.find_cells_from_masks(masks)
+        cells = Cell.find_cells(masks)
         number_adherent_cells, number_cells_total, adherent_cells = AdherentCell.find_adherent_cells(cells, diams,
                                                                                                      images_threshold,
                                                                                                      compare_threshold)
@@ -148,8 +149,9 @@ elif new_or_use_or_test == "u":
                 # get new parameters for cell detection from user and find mask + confluence
                 print("\nSet new parameters for cell detection on the cell layer: ")
                 cellprob_threshold_layer, flow_threshold_layer = prf.get_celldet_params()
-                mask_layer, confluence = Cell.determine_confluence(img_phc, flow_threshold=flow_threshold_layer,
-                                                                   cellprob_threshold=cellprob_threshold_layer)
+                mask_layer, diams_layer = Cell.run_cellpose(img_phc, flow_threshold=flow_threshold_layer,
+                                                            cellprob_threshold=cellprob_threshold_layer)
+                confluence = Cell.determine_confluence(mask_layer)
 
                 # print and safe confluence
                 prf.save_confluence_in_txtfile(txtfile, cellprob_threshold_layer, flow_threshold_layer, confluence)
@@ -196,7 +198,8 @@ elif new_or_use_or_test == "t":
         cellprob_threshold, flow_threshold = prf.get_celldet_params()
 
         # run 'find_cells' method, overlay cell outlines
-        cells, diams, masks = Cell.find_cells(imgs, cellprob_threshold=cellprob_threshold, flow_threshold=flow_threshold)
+        masks, diams = Cell.run_cellpose(imgs, cellprob_threshold=cellprob_threshold, flow_threshold=flow_threshold)
+        cells = Cell.find_cells(masks)
         overlay = imf.overlay_outlines(imgs, masks)
 
         # show images
@@ -237,8 +240,8 @@ elif new_or_use_or_test == "m":
         os.mkdir(path_output_cells_diams)
 
         # run 'find_cells' method and save masks and diams (names: include 'cellprob_threshold' and 'flow_threshold')
-        cells, diams, masks = Cell.find_cells(imgs[data_nr], cellprob_threshold=cellprob_threshold[data_nr],
-                                              flow_threshold=flow_threshold[data_nr])
+        masks, diams = Cell.run_cellpose(imgs[data_nr], cellprob_threshold=cellprob_threshold[data_nr],
+                                         flow_threshold=flow_threshold[data_nr])
         masks_name = 'masks_' + 'cpt' + str(cellprob_threshold[data_nr]) + 'ft' + str(flow_threshold[data_nr])
         Cell.safe_masks(masks, path_output_cells_diams, masks_name)
         diams_name = 'diams_' + 'cpt' + str(cellprob_threshold[data_nr]) + 'ft' + str(flow_threshold[data_nr])
@@ -253,8 +256,8 @@ elif new_or_use_or_test == "c":
 
     # get parameters for cell detection from user and find mask + confluence
     cellprob_threshold, flow_threshold = prf.get_celldet_params()
-    mask, confluence = Cell.determine_confluence(img_phc, flow_threshold=flow_threshold,
-                                                 cellprob_threshold=cellprob_threshold)
+    mask, diam = Cell.run_cellpose(img_phc, flow_threshold=flow_threshold, cellprob_threshold=cellprob_threshold)
+    confluence = Cell.determine_confluence(mask)
 
     # print confluence
     print("confluence: {0}%".format(confluence))
@@ -285,7 +288,7 @@ elif new_or_use_or_test == "f":
 
     while True:
         # get parameters from user
-        time_for_adherent, delay, images_threshold, compare_threshold = prf.get_adhcelldet_parmas(diams)
+        time_for_adherent, delay, images_threshold, compare_threshold = prf.get_adhcelldet_params(diams)
 
         # create new subdirectory for the data with the selected time and tolerance
         path_output_adherent = os.path.join(path_input,
@@ -293,7 +296,7 @@ elif new_or_use_or_test == "f":
         os.mkdir(path_output_adherent)
 
         # find cells and adherent cells
-        cells = Cell.find_cells_from_masks(masks)
+        cells = Cell.find_cells(masks)
         filtered_cells = list()
         for i in range(len(cells)):
             filtered_cells.append(Cell.filter_for_position(cells[i], background_mask))
