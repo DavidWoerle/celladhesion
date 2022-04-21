@@ -9,6 +9,9 @@ import config
 
 
 def change_celldet_params():
+    """ Changes the cell detection parameters in the config file"""
+
+    # load the current configuration
     with open("config.json", "r") as jsonFile:
         config = json.load(jsonFile)
 
@@ -25,12 +28,16 @@ def change_celldet_params():
         except ValueError:
             print("flow_threshold not valid")
 
+    # write the new parameters to the config file
     with open("config.json", "w") as jsonFile:
         json.dump(config, jsonFile)
     jsonFile.close()
 
 
 def change_adhcelldet_params():
+    """ Changes the cell detection parameters in the config file"""
+
+    # load the current configuration
     with open("config.json", "r") as jsonFile:
         config = json.load(jsonFile)
 
@@ -56,6 +63,7 @@ def change_adhcelldet_params():
         except ValueError:
             print("tolerance radius not valid")
 
+    # write the new parameters to the config file
     with open("config.json", "w") as jsonFile:
         json.dump(config, jsonFile)
     jsonFile.close()
@@ -109,11 +117,21 @@ def change_adhcelldet_params():
     return time_for_adherent, delay, images_threshold, compare_threshold"""
 
 
-def save_params_in_txtfile(txtfile, masks_name, diams_name, time_for_adherent, delay, images_threshold,
+"""def save_params_in_txtfile(txtfile, masks_name, diams_name, time_for_adherent, delay, images_threshold,
                            compare_threshold):
     # save the used masks, diams and parameters in the text file
     txtfile.write("masks={0}, diams={1}, time_for_adherent[s]={2}, delay[s]={3}, images_threshold={4}, \
-    tolerance={5}\n".format(masks_name, diams_name, time_for_adherent, delay, images_threshold, compare_threshold))
+    tolerance={5}\n".format(masks_name, diams_name, time_for_adherent, delay, images_threshold, compare_threshold))"""
+
+
+def save_config_in_txtfile(txtfile, masks_name, diams_name, config):
+    # save the used masks, diams and parameters in the text file
+    txtfile.write("masks={0}, diams={1}\n".format(masks_name, diams_name))
+    txtfile.write("Cell detection parameters:")
+    txtfile.write(str(config["celldet"]))
+    txtfile.write("\nAdherent Cell detection parameters:")
+    txtfile.write(str(config["adhcelldet"]))
+    txtfile.write("\n__________________________________________________________________________________________\n\n")
 
 
 def save_adh_in_txtfile(txtfile, number_adherent_cells, number_cells_total, adherent_cells, cells,
@@ -158,11 +176,13 @@ def save_adh_in_txtfile(txtfile, number_adherent_cells, number_cells_total, adhe
     print("\nCreated AdherentCell-objects: ", AdherentCell.get_adherent_cellcounter())
     txtfile.write("\n\nCreated AdherentCell-objects: {0}\n".format(AdherentCell.get_adherent_cellcounter()))
 
+    print("\n__________________________________________________________________________________________\n\n")
+    txtfile.write("\n\n__________________________________________________________________________________________\n\n")
 
-def save_confluence_in_txtfile(txtfile, cellprob_threshold_layer, flow_threshold_layer, confluence):
-    print("confluence: {0}%".format(confluence))
-    txtfile.write("\n\n\nConfluence (cpt={0}, ft={1}): {2}%".format(cellprob_threshold_layer, flow_threshold_layer,
-                                                                    confluence))
+
+def save_confluence_in_txtfile(txtfile, mask_name, confluence):
+    print("Confluence: {0}% \n\n".format(confluence))
+    txtfile.write("\n\n\nConfluence (Used background mask: {0}): {1}% \n\n\n".format(mask_name, confluence))
 
 
 def show_and_save_result_imgs(imgs, path, name):

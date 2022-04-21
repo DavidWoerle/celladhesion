@@ -134,7 +134,7 @@ elif new_or_use_or_test == "u":
             # get path and image of the cell layer
             path_phc = input("Path where image of cell layer is saved: ").replace('\\', '/')
             name_phc = str(input("Name of '.tif'-file of cell layer (without ending): ")) + '.tif'
-            img_phc = imf.read_single_tif(os.path.join(path_phc, name_phc))
+            img_phc = imf.read_single_img(os.path.join(path_phc, name_phc))
 
             # create new subdirectory for the overlayed images
             path_output_phc = os.path.join(path_output_adherent, 'celladhesion_overlayPhc')
@@ -252,7 +252,7 @@ elif new_or_use_or_test == "c":
     path_phc = input("Path where image of cell layer is saved: ").replace('\\', '/')
     name_phc = str(input("Name of '.tif'-file of cell layer (without ending): ")) + '.tif'
     # read cell layer image
-    img_phc = imf.read_single_tif(os.path.join(path_phc, name_phc))
+    img_phc = imf.read_single_img(os.path.join(path_phc, name_phc))
 
     # get parameters for cell detection from user and find mask + confluence
     cellprob_threshold, flow_threshold = prf.get_celldet_params()
@@ -337,7 +337,7 @@ elif new_or_use_or_test == "f":
             # get path and image of the cell layer
             path_phc = input("Path where image of cell layer is saved: ").replace('\\', '/')
             name_phc = str(input("Name of '.tif'-file of cell layer (without ending): ")) + '.tif'
-            img_phc = imf.read_single_tif(os.path.join(path_phc, name_phc))
+            img_phc = imf.read_single_img(os.path.join(path_phc, name_phc))
 
             # create new subdirectory for the overlayed images
             path_output_phc = os.path.join(path_output_adherent, 'celladhesion_overlayPhc')

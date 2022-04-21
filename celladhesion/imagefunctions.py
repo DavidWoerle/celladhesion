@@ -37,8 +37,8 @@ def read_test_tifs():
     return imgs
 
 
-def read_single_tif(path):
-    # Read a single '.tif' image from given path
+def read_single_img(path):
+    # Read a single image from given path
     img = skimage.io.imread(path)
     return img
 
@@ -68,14 +68,16 @@ def load_test_diams():
     return list(np.float_(diams))
 
 
-def overlay_outlines(imgs, masks):
+def overlay_outlines(imgs, masks, colour=[1.0, 0, 0]):
     """
-    Generates red outline overlay in 'imgs'
+    Generates outline overlay in 'imgs'
 
     :param imgs: list
                 containing 'ndarray' of each image
     :param masks: list of 2D arrays; labelled
                 image, where 0=no masks; 1,2,...=mask labels
+    :param colour: array
+                Float array with values from 0.0 to 1.0 for the three RGB channels
     :return overlay: list of RGB images
                 RGB images with red outlines
     """
@@ -95,7 +97,7 @@ def overlay_outlines(imgs, masks):
             for y in range(masks[img_number].shape[0]):
                 for x in range(masks[img_number].shape[1]):
                     if outlines[y][x] == 1:
-                        img_rgb[y][x] = [1.0, 0, 0]
+                        img_rgb[y][x] = colour
             overlay.append(img_rgb)     # add new image with outlines to list
         return overlay
 
@@ -116,7 +118,7 @@ def overlay_outlines(imgs, masks):
     return overlay
 
 
-def overlay_adherent_squares(imgs, adherent_cells, square_length):
+def overlay_adherent_squares(imgs, adherent_cells, square_length, colour=[0, 0.54, 0.27]):
     length = int(square_length / 2)
     imgs_rgb = list()
     for img_number in range(len(imgs)):
@@ -134,10 +136,9 @@ def overlay_adherent_squares(imgs, adherent_cells, square_length):
         pos_top = [pos[0] - length, pos[1] - length]
         pos_bottom = [pos[0] + length, pos[1] + length]
         first_appearance = cell.get_first_appearance()
-        color = [0, 0.54, 0.27]
         for consecutive_img_number in range(cell.get_number_appearances()):
             # imgs_rgb[first_appearance + consecutive_img_number] = cv2.rectangle(imgs_rgb[first_appearance + consecutive_img_number], pos_top, pos_bottom, color)
-            imgs_rgb[first_appearance + consecutive_img_number] = cv2.circle(imgs_rgb[first_appearance + consecutive_img_number], pos, 40, color)
+            imgs_rgb[first_appearance + consecutive_img_number] = cv2.circle(imgs_rgb[first_appearance + consecutive_img_number], pos, 40, colour)
             """
             for x_top in range(-length, length):
                 imgs_rgb[first_appearance + concsecutive_img_number][pos[1] + length][pos[0] + x_top] = [0, 0.54, 0.27]
@@ -241,7 +242,7 @@ def filter_masks(masks, adherent_cells):
     return filtered_masks
 
 
-def adherent_cells_over_phasecontrast(phc_img, masks, adherent_cells):
+def adherent_cells_over_phasecontrast(phc_img, masks, adherent_cells, colour):
     """
     Overlays outlines only of the adherent cells on one single image
 
@@ -251,6 +252,8 @@ def adherent_cells_over_phasecontrast(phc_img, masks, adherent_cells):
                 labelled image, where 0=no masks; 1,2,...=mask labels
     :param adherent_cells: list
                 list of 'AdherentCell' objects
+    :param colour: array
+                Float array with values from 0.0 to 1.0 for the three RGB channels
     :return: adh_over_phc: list of RGB images
                 RGB images with red outline where adherent cells are located
     """
@@ -259,7 +262,7 @@ def adherent_cells_over_phasecontrast(phc_img, masks, adherent_cells):
     imgs = list()
     for i in range(len(masks)):
         imgs.append(phc_img)
-    adh_over_phc = overlay_outlines(imgs, adherent_masks)
+    adh_over_phc = overlay_outlines(imgs, adherent_masks, colour)
 
     return adh_over_phc
 
