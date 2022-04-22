@@ -1,1 +1,1 @@
-{"celldet": {"cellprob_threshold": 0.9, "flow_threshold": 0.1}, "adhcelldet": {"time_for_adherent[s]": 60.0, "delay[s]": 30.0, "images_threshold": 3, "tolerance": 10}}
+{"celldet": {"cellprob_threshold": 0.8, "flow_threshold": 0.2}, "adhcelldet": {"time_for_adherent[s]": 60.0, "delay[s]": 30.0, "images_threshold": 3, "tolerance": 10}}

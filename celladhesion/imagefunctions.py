@@ -90,9 +90,11 @@ def overlay_outlines(imgs, masks, colour=[1.0, 0, 0]):
             # Check if image is already RGB
             if len(imgs[img_number].shape) != 3:
                 # convert image to RGB, divide by maximum value to show image in full range:
-                img_rgb = np.stack((imgs[img_number] / imgs[img_number].max(),)*3, axis=-1)
+                #img_rgb = np.stack((imgs[img_number] / imgs[img_number].max(),)*3, axis=-1)
+                img_rgb = np.stack((imgs[img_number],)*3, axis=-1)
             else:
-                img_rgb = imgs[img_number] / imgs[img_number].max()
+                #img_rgb = imgs[img_number] / imgs[img_number].max()
+                img_rgb = imgs[img_number]
             # iterate over every pixel and set colour of image to red, if pixel is part of an outline:
             for y in range(masks[img_number].shape[0]):
                 for x in range(masks[img_number].shape[1]):
@@ -265,6 +267,7 @@ def adherent_cells_over_phasecontrast(phc_img, masks, adherent_cells, colour):
     adh_over_phc = overlay_outlines(imgs, adherent_masks, colour)
 
     return adh_over_phc
+
 
         
 

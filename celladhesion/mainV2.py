@@ -33,7 +33,7 @@ a mask \n4.) Change CONFIGURATION \n")
 
 
 while True:
-    program_choice = input("Type the number and press enter:  ")
+    program_choice = input("Type the mode number and press enter:  ")
     print("\n__________________________________________________________________________________________\n")
 
     if program_choice == "1":
@@ -128,7 +128,11 @@ while True:
             filter_choice = input("Filter cells for their position on a background mask? [y / n]:  ")
             if filter_choice == "y":
                 # get the background mask
-                path_input_background_mask = input("Path where image with background masks is saved: ").replace('\\', '/')
+                path_input_background_mask = input("\nPath where image with background masks is saved (if same as \
+                before, just press enter):  ").replace('\\', '/')
+                # no new path -> use the same as before
+                if path_input_background_mask == "":
+                    path_input_background_mask = path_input
                 background_mask_name = str(
                     input("Name of '.png'-file with background masks (without ending): ")) + '.png'
                 background_mask = imf.read_single_img(os.path.join(path_input_background_mask, background_mask_name))
@@ -169,7 +173,13 @@ while True:
             if cells_on_phc == "y":
 
                 # get path and image of the cell layer
-                path_phc = input("Path where image of cell layer is saved: ").replace('\\', '/')
+                path_phc = input("\nPath where image of cell layer is saved (if same as before, just press enter):  ").replace('\\', '/')
+                # no new path -> use the same as before
+                if path_phc == "":
+                    if filter_choice == "y":
+                        path_phc = path_input_background_mask
+                    else:
+                        path_phc = path_input
                 name_phc = str(input("Name of '.tif'-file of cell layer (without ending):  ")) + '.tif'
                 img_phc = imf.read_single_img(os.path.join(path_phc, name_phc))
 
@@ -185,7 +195,7 @@ while True:
 
 
             # check if user wants to rerun or stop the program
-            rerun = input("Rerun? [y / n]: ")
+            rerun = input("\nRerun? [y / n]: ")
             # if no, break out of the loop to stop the program
             if rerun == "n":
                 break
@@ -232,9 +242,9 @@ while True:
         print("\n__________________________________________________________________________________________\n")
 
     else:
-        print("Invalid choice!\n")
+        print("Invalid choice!")
 
-    close = input("Close the program? [y / n]:  ")
+    close = input("\nClose the program? [y / n]:  ")
     print("\n")
     if close == "y":
         break
