@@ -68,9 +68,9 @@ def load_test_diams():
     return list(np.float_(diams))
 
 
-def overlay_outlines(imgs, masks, colour=[1.0, 0, 0]):
+def overlay_outlines(imgs, masks):
     """
-    Generates outline overlay in 'imgs'
+    Generates red outline overlay in 'imgs'
 
     :param imgs: list
                 containing 'ndarray' of each image
@@ -79,7 +79,7 @@ def overlay_outlines(imgs, masks, colour=[1.0, 0, 0]):
     :param colour: array
                 Float array with values from 0.0 to 1.0 for the three RGB channels
     :return overlay: list of RGB images
-                RGB images with red outlines
+                RGB images with coloured outlines
     """
     if isinstance(imgs, list):
         overlay = list()
@@ -90,16 +90,16 @@ def overlay_outlines(imgs, masks, colour=[1.0, 0, 0]):
             # Check if image is already RGB
             if len(imgs[img_number].shape) != 3:
                 # convert image to RGB, divide by maximum value to show image in full range:
-                #img_rgb = np.stack((imgs[img_number] / imgs[img_number].max(),)*3, axis=-1)
+                # img_rgb = np.stack((imgs[img_number] / imgs[img_number].max(),)*3, axis=-1)
                 img_rgb = np.stack((imgs[img_number],)*3, axis=-1)
             else:
-                #img_rgb = imgs[img_number] / imgs[img_number].max()
+                # img_rgb = imgs[img_number] / imgs[img_number].max()
                 img_rgb = imgs[img_number]
             # iterate over every pixel and set colour of image to red, if pixel is part of an outline:
             for y in range(masks[img_number].shape[0]):
                 for x in range(masks[img_number].shape[1]):
                     if outlines[y][x] == 1:
-                        img_rgb[y][x] = colour
+                        img_rgb[y][x] = [imgs[img_number].max(), 0, 0]
             overlay.append(img_rgb)     # add new image with outlines to list
         return overlay
 
@@ -264,9 +264,30 @@ def adherent_cells_over_phasecontrast(phc_img, masks, adherent_cells, colour):
     imgs = list()
     for i in range(len(masks)):
         imgs.append(phc_img)
-    adh_over_phc = overlay_outlines(imgs, adherent_masks, colour)
+    adh_over_phc = overlay_outlines(imgs, adherent_masks)
 
     return adh_over_phc
+
+
+def background_mask_over_img(imgs, background_mask):
+    """
+    Overlays outlines of the background mask over the images
+
+    :param imgs: list
+                list of 2D images
+    :param background_mask: 2D array
+                labelled image, where 0=no masks; 1,2,...=mask labels
+    :param colour: array
+                Float array with values from 0.0 to 1.0 for the three RGB channels
+    :return: background_over_img: list of RGB images
+                RGB images with coloured outlines
+    """
+    masks = list()
+    for i in range(len(imgs)):
+        masks.append(background_mask)
+    background_over_img = overlay_outlines(imgs, masks)
+
+    return background_over_img
 
 
 def find_intensity_complete(img):
@@ -279,7 +300,7 @@ def find_intensity_complete(img):
             intensity of the picture
     """
     pixels = 0  # total number of pixels
-    intensity_counter = 0   # total intensity of all pixels
+    intensity_counter = np.float64(0)   # total intensity of all pixels
 
     for y in range(img.shape[0]):   # iterate image
         for x in range(img.shape[1]):
@@ -305,8 +326,8 @@ def find_intensity_mask(img, background_mask):
 
     pixels_mask = 0     # variable to count the number of mask pixels
     pixels_rest = 0     # variable to count all other pixels
-    intensity_mask_counter = 0  # total intensity of mask pixels
-    intensity_rest_counter = 0  # total intensity of other pixels
+    intensity_mask_counter = np.float64(0)  # total intensity of mask pixels
+    intensity_rest_counter = np.float64(0)  # total intensity of other pixels
 
     for y in range(img.shape[0]):   # iterate image
         for x in range(img.shape[1]):
@@ -370,12 +391,6 @@ def find_intensity(imgs, background_mask=None):
         else:
             intensity = find_intensity_mask(imgs, background_mask)
             return intensity
-
-
-
-
-
-
 
 
 

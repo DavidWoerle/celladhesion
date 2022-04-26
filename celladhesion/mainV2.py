@@ -29,7 +29,7 @@ print("\n_______________________________________________________________________
 # let user choose the program mode
 print("Choose mode: \n")
 print("1.) Create NEW masks/diameters \n2.) USE already created masks to run the program \n3.) Determine CONFLUENCE of \
-a mask \n4.) Change CONFIGURATION \n")
+a mask \n4.) Determine INTENSITY of images \n5.) Change CONFIGURATION \n")
 
 
 while True:
@@ -193,7 +193,6 @@ while True:
                     adh_over_phc = imf.overlay_adherent_squares(adh_over_phc, adherent_cells_filtered, 30)
                 prf.show_and_save_result_imgs(adh_over_phc, path_output_phc, "overlayPhc")
 
-
             # check if user wants to rerun or stop the program
             rerun = input("\nRerun? [y / n]: ")
             # if no, break out of the loop to stop the program
@@ -217,7 +216,57 @@ while True:
                     diams = imf.load_diams(os.path.join(path_input, diams_name))
 
     elif program_choice == "4":
-        print("Change CONFIGURATION: \n\n")
+        print("Determine INTENSITY of images \n\n")
+
+        while True:
+            path_imgs = input("Path of '.tif'-images: ").replace('\\', '/')
+            imgs = imf.read_tifs(path_imgs)
+
+
+
+            background_choice = input("\nUse background mask to find intensities according to the background mask? "
+                                      "[y / n]:  ")
+
+            if background_choice == "y":
+                path_background_mask = input("\nPath where image of background mask is saved (if same as before, "
+                                             "just press enter):  ").replace('\\', '/')
+                # no new path -> use the same as before
+                if path_background_mask == "":
+                    path_background_mask = path_imgs
+                name_background_mask = str(input("\nName of '.png'-file of cell layer (without ending):  ")) + '.png'
+                img_background_mask = imf.read_single_img(os.path.join(path_background_mask, name_background_mask))
+
+                intensity = imf.find_intensity(imgs, img_background_mask)
+                imgs_background_overlay = imf.background_mask_over_img(imgs, img_background_mask)
+
+                # create new subdirectory for the output data
+                path_output_intensity = os.path.join(path_imgs, 'intensity_mask')
+                os.mkdir(path_output_intensity)
+
+                for i in range(len(imgs)):
+                    name = "intensity" + str(i) + "-intM_" + str(intensity[i]["mask"]) + "-intR_" \
+                           + str(intensity[i]["rest"]) + "-confl_" + str(intensity[i]["confluence"])
+                    prf.show_and_save_result_imgs(imgs_background_overlay[i], path_output_intensity, name)
+
+            else:
+                intensity = imf.find_intensity(imgs)
+
+                # create new subdirectory for the output data
+                path_output_intensity = os.path.join(path_imgs, 'intensity_total')
+                os.mkdir(path_output_intensity)
+
+                for i in range(len(imgs)):
+                    name = "intensity" + str(i) + "_" + str(intensity[i])
+                    prf.show_and_save_result_imgs(imgs[i], path_output_intensity, name)
+
+            # check if user wants to rerun or stop the program
+            rerun = input("\nRerun? [y / n]: ")
+            # if no, break out of the loop to stop the program
+            if rerun == "n":
+                break
+
+    elif program_choice == "5":
+        print("Change CONFIGURATION \n\n")
 
         change_celldet = input("Change Cell detection parameters? [y / n]:  ")
         if change_celldet == "y":
