@@ -269,6 +269,111 @@ def adherent_cells_over_phasecontrast(phc_img, masks, adherent_cells, colour):
     return adh_over_phc
 
 
+def find_intensity_complete(img):
+    """
+    Determines the intensity of all pixel values of an given image
+
+    :param img: ndarray
+            image of which the intensity shall be determined
+    :return: intensity: float
+            intensity of the picture
+    """
+    pixels = 0  # total number of pixels
+    intensity_counter = 0   # total intensity of all pixels
+
+    for y in range(img.shape[0]):   # iterate image
+        for x in range(img.shape[1]):
+            intensity_counter += img[y][x]  # raise value of the intensity by the value of the pixel
+            pixels += 1     # raise pixel counter
+
+    intensity = round(intensity_counter / pixels, 2)   # calculate intensity, normalized with the total number of pixels
+    return intensity
+
+
+def find_intensity_mask(img, background_mask):
+    """
+    Determines the intensities of those pixels on an image, that match with the pixels of an background mask
+    :param img: ndarray
+            image of which the intensity shall be determined
+    :param background_mask: 2D array
+            labelled image, where 0=no masks; 1,2,...=mask labels
+    :return: intensities: dictionary
+            dictionary that contains the intensity (float) of all pixels matching a mask, the intensity of all the other pixels
+            and the confluence (percentage of the image surface covered by masks). Key words: "mask", "rest",
+            "confluence"
+    """
+
+    pixels_mask = 0     # variable to count the number of mask pixels
+    pixels_rest = 0     # variable to count all other pixels
+    intensity_mask_counter = 0  # total intensity of mask pixels
+    intensity_rest_counter = 0  # total intensity of other pixels
+
+    for y in range(img.shape[0]):   # iterate image
+        for x in range(img.shape[1]):
+            if background_mask[y][x] != 0:  # mask pixel, if value is not zero
+                intensity_mask_counter += img[y][x]     # -> raise total mask intensity
+                pixels_mask += 1    # -> raise mask pixel counter
+            else:   # else: no mask pixel
+                intensity_rest_counter += img[y][x]     # -> raise rest mask intensity
+                pixels_rest += 1    # -> raise rest pixel counter
+
+    # calculate intensity (normalized with the total number of pixels) of the mask and rest pixels
+    intensity_mask = round(intensity_mask_counter / pixels_mask, 2)
+    intensity_rest = round(intensity_rest_counter / pixels_rest, 2)
+    # calculate confluence of the background mask
+    confluence = round((pixels_mask / (pixels_mask + pixels_rest)) * 100)
+
+    # save values in a dictionary
+    intensities = {"mask": intensity_mask, "rest": intensity_rest, "confluence": confluence}
+
+    return intensities
+
+
+def find_intensity(imgs, background_mask=None):
+    """
+    Determines the intensities of one or more images. If an image with a background mask is handed over, the intensities
+    of those pixels on the images, that match with the pixels of the background mask, are calculated separately.
+    The function uses 'find_intensity_complete' and 'find_intensity_mask' functions to do so.
+
+    :param imgs: list or ndarray
+            list containing 'ndarray' of each image ore one single ndarray
+    :param background_mask: 2D array
+            labelled image, where 0=no masks; 1,2,...=mask labels
+    :return: intensity: float or dictionary
+            intensity value (for single image input) or list of intensity values (for multiple image input)
+            If a background mask is used, the intensity is a dictionary that contains the intensity (float) of all
+            pixels matching a mask, the intensity of all the other pixels and the confluence (percentage of the image
+            surface covered by masks). Key words: "mask", "rest", "confluence".
+            Otherwise, the intensity is a single float value.
+    """
+
+    if background_mask is None:
+        if isinstance(imgs, list):
+            intensities = list()
+            for img_nr in range(len(imgs)):
+                intensities.append(find_intensity_complete(imgs[img_nr]))
+            return intensities
+        else:
+            intensity = find_intensity_complete(imgs)
+            return intensity
+    else:
+        if isinstance(imgs, list):
+            intensities = list()
+            for img_nr in range(len(imgs)):
+                intensities.append(find_intensity_mask(imgs[img_nr], background_mask))
+            return intensities
+        else:
+            intensity = find_intensity_mask(imgs, background_mask)
+            return intensity
+
+
+
+
+
+
+
+
+
         
 
 
