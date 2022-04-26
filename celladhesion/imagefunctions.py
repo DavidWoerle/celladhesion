@@ -346,22 +346,27 @@ def find_intensity(imgs, background_mask=None):
             surface covered by masks). Key words: "mask", "rest", "confluence".
             Otherwise, the intensity is a single float value.
     """
-
+    # version without background mask
     if background_mask is None:
+        # multiple images
         if isinstance(imgs, list):
             intensities = list()
             for img_nr in range(len(imgs)):
                 intensities.append(find_intensity_complete(imgs[img_nr]))
             return intensities
+        # single image
         else:
             intensity = find_intensity_complete(imgs)
             return intensity
+    # version with background mask
     else:
+        # multiple images
         if isinstance(imgs, list):
             intensities = list()
             for img_nr in range(len(imgs)):
                 intensities.append(find_intensity_mask(imgs[img_nr], background_mask))
             return intensities
+        # single image
         else:
             intensity = find_intensity_mask(imgs, background_mask)
             return intensity
