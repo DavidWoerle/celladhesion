@@ -168,8 +168,8 @@ while True:
                                                os.path.join(path_output_adherent, 'adh_on_img_filtered.csv'))
 
                 # save celladhesion data in a '.csv'-file
-                prf.celladhesion_to_csv(confluence, number_adherent_cells, len(adherent_cells[0]),
-                                        number_adherent_cells_filtered, len(adherent_cells_filtered[0]),
+                prf.celladhesion_to_csv(confluence, number_adherent_cells, len(cells[0]),
+                                        number_adherent_cells_filtered, len(filtered_cells[0]),
                                         os.path.join(path_output_adherent, 'celladhesion_data.csv'))
 
             txtfile.close()     # close txt file to safe the data
