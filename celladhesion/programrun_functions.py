@@ -207,3 +207,17 @@ def number_adh_on_image_to_csv(nr_adherent_cells_on_img, path):
         csv_out.writerows([nr_adherent_cells_on_img[index]] for index in range(0, len(nr_adherent_cells_on_img)))
 
 
+def celladhesion_to_csv(confluence, nr_adherent_cells, nr_on_first, nr_adherent_cells_filtered, nr_on_first_filtered,
+                        path):
+    with open(path, 'w') as csv_1:
+        csv_out = csv.writer(csv_1)
+        csv_out.writerow(['Confl', 'adhC', 'Cfirst', 'adhC/Cfirst', 'adhC_filter', 'Cfirst_filter',
+                          'adhC/Cfirst_filter'])
+        csv_out.writerow([str(confluence).replace('.', ','), str(nr_adherent_cells), str(nr_on_first),
+                          str(round(nr_adherent_cells / nr_on_first, 2)).replace('.', ','),
+                          str(nr_adherent_cells_filtered), str(nr_on_first_filtered),
+                          str(round(nr_adherent_cells_filtered / nr_on_first_filtered, 2)).replace('.', ',')])
+    csv_1.close()
+
+
+

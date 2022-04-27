@@ -128,8 +128,8 @@ while True:
             filter_choice = input("Filter cells for their position on a background mask? [y / n]:  ")
             if filter_choice == "y":
                 # get the background mask
-                path_input_background_mask = input("\nPath where image with background masks is saved (if same as \
-                before, just press enter):  ").replace('\\', '/')
+                path_input_background_mask = input("\nPath where image with background masks is saved (if same as "
+                                                   "before, just press enter):  ").replace('\\', '/')
                 # no new path -> use the same as before
                 if path_input_background_mask == "":
                     path_input_background_mask = path_input
@@ -167,6 +167,13 @@ while True:
                 prf.number_adh_on_image_to_csv(nr_adherent_cells_on_img_filtered,
                                                os.path.join(path_output_adherent, 'adh_on_img_filtered.csv'))
 
+                # save celladhesion data in a '.csv'-file
+                prf.celladhesion_to_csv(confluence, number_adherent_cells, len(adherent_cells[0]),
+                                        number_adherent_cells_filtered, len(adherent_cells_filtered[0]),
+                                        os.path.join(path_output_adherent, 'celladhesion_data.csv'))
+
+            txtfile.close()     # close txt file to safe the data
+
             # check if user wants to overlay the adherent cells on an image of the call layer
             print("\n__________________________________________________________________________________________\n")
             cells_on_phc = input("\nOverlay adherent cells on image of the cell layer? [y / n]:  ")
@@ -193,6 +200,10 @@ while True:
                     adh_over_phc = imf.overlay_adherent_squares(adh_over_phc, adherent_cells_filtered, 30)
                 prf.show_and_save_result_imgs(adh_over_phc, path_output_phc, "overlayPhc")
 
+            print("\n__________________________________________________________________________________________\n")
+            print("All data found and saved! ")
+            print("\n__________________________________________________________________________________________\n")
+
             # check if user wants to rerun or stop the program
             rerun = input("\nRerun? [y / n]: ")
             # if no, break out of the loop to stop the program
@@ -208,6 +219,8 @@ while True:
                     path_imgs = input("Path of '.tif'-images: ").replace('\\', '/')
                     imgs = imf.read_tifs(path_imgs)
 
+                    print("\n__________________________________________________________________________________________"
+                          "\n")
                     # get masks/diams from user
                     path_input = input("Path where masks and diams are saved: ").replace('\\', '/')
                     masks_name = str(input("Name of '.npy'-file with masks (without ending): ")) + '.npy'
@@ -259,11 +272,16 @@ while True:
                     name = "intensity" + str(i) + "_" + str(intensity[i])
                     prf.show_and_save_result_imgs(imgs[i], path_output_intensity, name)
 
+            print("\n__________________________________________________________________________________________\n")
+            print("All data found and saved! ")
+            print("\n__________________________________________________________________________________________\n")
+
             # check if user wants to rerun or stop the program
             rerun = input("\nRerun? [y / n]: ")
             # if no, break out of the loop to stop the program
             if rerun == "n":
                 break
+            print("\n__________________________________________________________________________________________\n")
 
     elif program_choice == "5":
         print("Change CONFIGURATION \n\n")
