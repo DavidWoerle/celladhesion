@@ -215,12 +215,13 @@ while True:
                 # if the user chooses new ones, get new images, masks and diameters
                 if new_or_same_masks == "n":
                     print("\n\n")
+                    print("\n__________________________________________________________________________________________"
+                          "\n")
+
                     # get images from user
                     path_imgs = input("Path of '.tif'-images: ").replace('\\', '/')
                     imgs = imf.read_tifs(path_imgs)
 
-                    print("\n__________________________________________________________________________________________"
-                          "\n")
                     # get masks/diams from user
                     path_input = input("Path where masks and diams are saved: ").replace('\\', '/')
                     masks_name = str(input("Name of '.npy'-file with masks (without ending): ")) + '.npy'
@@ -234,8 +235,6 @@ while True:
         while True:
             path_imgs = input("Path of '.tif'-images: ").replace('\\', '/')
             imgs = imf.read_tifs(path_imgs)
-
-
 
             background_choice = input("\nUse background mask to find intensities according to the background mask? "
                                       "[y / n]:  ")

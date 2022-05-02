@@ -265,15 +265,20 @@ class Cell:
                 filtered_cells.append(cells[cell_nr])       # if yes, add the cell to the result list
             else:
                 radius = cell.get_radius()      # simplify radius call
+                match_found = False             # used to make sure, each cell is added to 'filtered_cells' only once
                 # iterate over all pixels in a square around the cell (side length: 2 * cell_radius)
                 for y in range(cell.get_position()[1] - radius, cell.get_position()[1] + radius):
                     for x in range(cell.get_position()[0] - radius, cell.get_position()[0] + radius):
-                        if (y - cell.get_position()[1]) ** 2 + (x - cell.get_position()[0]) ** 2 <= radius:
-                            # make sure the pixel is part of the background img (relevant for cells on edges of the img)
-                            if (0 <= y <= background_mask.shape[0]) and (0 <= x <= background_mask.shape[1]):
-                                # if the position of the pixel matches a mask pixel, add the cell to list
-                                if background_mask[y][x] != 0:
-                                    filtered_cells.append(cells[cell_nr])
+                        # prevent adding cell to 'filtered_cells' more than once
+                        if not match_found:
+                            # only check pixels of the actual cell (approx. circle with radius  of the cell)
+                            if (y - cell.get_position()[1]) ** 2 + (x - cell.get_position()[0]) ** 2 <= radius:
+                                # make sure the pixel is part of the background img (relevant for cells on edges of the img)
+                                if (0 <= y <= background_mask.shape[0]) and (0 <= x <= background_mask.shape[1]):
+                                    # if the position of the pixel matches a mask pixel, add the cell to list
+                                    if background_mask[y][x] != 0:
+                                        match_found = True
+                                        filtered_cells.append(cells[cell_nr])
 
         return filtered_cells
 
