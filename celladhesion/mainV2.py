@@ -210,24 +210,20 @@ while True:
             if rerun == "n":
                 break
             else:
-                # if yes, check if user wants to use the same masks as before or new ones
-                new_or_same_masks = input("Use NEW or SAME masks? [n / s]: ")
-                # if the user chooses new ones, get new images, masks and diameters
-                if new_or_same_masks == "n":
-                    print("\n\n")
-                    print("\n__________________________________________________________________________________________"
-                          "\n")
+                print("\n\n")
+                print("\n__________________________________________________________________________________________"
+                      "\n")
 
-                    # get images from user
-                    path_imgs = input("Path of '.tif'-images: ").replace('\\', '/')
-                    imgs = imf.read_tifs(path_imgs)
+                # get images from user
+                path_imgs = input("Path of '.tif'-images: ").replace('\\', '/')
+                imgs = imf.read_tifs(path_imgs)
 
-                    # get masks/diams from user
-                    path_input = input("Path where masks and diams are saved: ").replace('\\', '/')
-                    masks_name = str(input("Name of '.npy'-file with masks (without ending): ")) + '.npy'
-                    masks = imf.load_masks(os.path.join(path_input, masks_name))
-                    diams_name = str(input("Name of '.txt'-file with diameters (without ending): ")) + '.txt'
-                    diams = imf.load_diams(os.path.join(path_input, diams_name))
+                # get masks/diams from user
+                path_input = input("Path where masks and diams are saved: ").replace('\\', '/')
+                masks_name = str(input("Name of '.npy'-file with masks (without ending): ")) + '.npy'
+                masks = imf.load_masks(os.path.join(path_input, masks_name))
+                diams_name = str(input("Name of '.txt'-file with diameters (without ending): ")) + '.txt'
+                diams = imf.load_diams(os.path.join(path_input, diams_name))
 
     elif program_choice == "4":
         print("Determine INTENSITY of images \n\n")
@@ -240,16 +236,18 @@ while True:
                                       "[y / n]:  ")
 
             if background_choice == "y":
-                path_background_mask = input("\nPath where image of background mask is saved (if same as before, "
-                                             "just press enter):  ").replace('\\', '/')
+                path_background_mask = input("\nPath where '.png'-image/s of background mask/s is/are saved (if same as "
+                                             "before, just press enter):  ").replace('\\', '/')
                 # no new path -> use the same as before
                 if path_background_mask == "":
                     path_background_mask = path_imgs
-                name_background_mask = str(input("\nName of '.png'-file of cell layer (without ending):  ")) + '.png'
-                img_background_mask = imf.read_single_img(os.path.join(path_background_mask, name_background_mask))
 
-                intensity = imf.find_intensity(imgs, img_background_mask)
-                imgs_background_overlay = imf.background_mask_over_img(imgs, img_background_mask)
+                imgs_background_mask = imf.read_pngs(path_background_mask)
+                #name_background_mask = str(input("\nName of '.png'-file of cell layer (without ending):  ")) + '.png'
+                #img_background_mask = imf.read_single_img(os.path.join(path_background_mask, name_background_mask))
+
+                intensity = imf.find_intensity(imgs, imgs_background_mask)
+                imgs_background_overlay = imf.background_mask_over_img(imgs, imgs_background_mask)
 
                 # create new subdirectory for the output data
                 path_output_intensity = os.path.join(path_imgs, 'intensity_mask')
@@ -270,6 +268,9 @@ while True:
                 for i in range(len(imgs)):
                     name = "intensity" + str(i) + "_" + str(intensity[i])
                     prf.show_and_save_result_imgs(imgs[i], path_output_intensity, name)
+
+            # save intensity data to csv file
+            prf.intensities_to_csv(intensity, os.path.join(path_imgs, 'intensity_data.csv'))
 
             print("\n__________________________________________________________________________________________\n")
             print("All data found and saved! ")

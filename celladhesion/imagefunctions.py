@@ -3,6 +3,24 @@ import skimage.segmentation
 import os
 import numpy as np
 import cv2
+import glob
+from natsort import os_sorted
+
+
+"""def read_tifs(folder):
+    
+    Reads '.tif'-files from the given folder
+    :param folder: folder directory (...:/.../.../)
+    :return: list containing ndarray of each '.tif'-file in the folder
+    
+    files = [os.path.join(root, filename)   # creates list of every filename
+             for root, dirs, files in os.walk(folder)
+             for filename in files
+             if filename.lower().endswith('.tif')]
+
+    imgs = [skimage.io.imread(f) for f in files]
+
+    return imgs"""
 
 
 def read_tifs(folder):
@@ -11,12 +29,21 @@ def read_tifs(folder):
     :param folder: folder directory (...:/.../.../)
     :return: list containing ndarray of each '.tif'-file in the folder
     """
-    files = [os.path.join(root, filename)   # creates list of every filename
-             for root, dirs, files in os.walk(folder)
-             for filename in files
-             if filename.lower().endswith('.tif')]
 
-    imgs = [skimage.io.imread(f) for f in files]
+    # read the images and make sure the reading order is the same es the one in the windows explorer ('os_sorted()')
+    imgs = [skimage.io.imread(file) for file in os_sorted(glob.glob(os.path.join(folder, "*.tif")))]
+
+    return imgs
+
+
+def read_pngs(folder):
+    """
+     Reads '.png'-files from the given folder
+    :param folder: folder directory (...:/.../.../)
+    :return: list containing ndarray of each '.png'-file in the folder
+    """
+    # read the images and make sure the reading order is the same es the one in the windows explorer ('os_sorted()')
+    imgs = [skimage.io.imread(file) for file in os_sorted(glob.glob(os.path.join(folder, "*.png")), key=os.path.getmtime)]
 
     return imgs
 
@@ -134,31 +161,34 @@ def overlay_adherent_squares(imgs, adherent_cells, square_length, colour=[0, 0.5
 
     for cell_number in range(len(adherent_cells)):
         cell = adherent_cells[cell_number]
-        pos = cell.get_position()
-        pos_top = [pos[0] - length, pos[1] - length]
-        pos_bottom = [pos[0] + length, pos[1] + length]
-        first_appearance = cell.get_first_appearance()
-        for consecutive_img_number in range(cell.get_number_appearances()):
-            # imgs_rgb[first_appearance + consecutive_img_number] = cv2.rectangle(imgs_rgb[first_appearance + consecutive_img_number], pos_top, pos_bottom, color)
-            imgs_rgb[first_appearance + consecutive_img_number] = cv2.circle(imgs_rgb[first_appearance + consecutive_img_number], pos, 40, colour)
-            """
-            for x_top in range(-length, length):
-                imgs_rgb[first_appearance + concsecutive_img_number][pos[1] + length][pos[0] + x_top] = [0, 0.54, 0.27]
-            for x_bottom in range(-length, length):
-                imgs_rgb[first_appearance + concsecutive_img_number][pos[1] - length][pos[0] + x_bottom] = [0, 0.54, 0.27]
-            for y in range(-length, length):
-                imgs_rgb[first_appearance + concsecutive_img_number][pos[1] + y][pos[0] + length] = [0, 0.54, 0.27]
-                
-            for y in range(-length, length):
-                imgs_rgb[first_appearance + concsecutive_img_number][pos[1] + y][pos[0] - length] = [0, 0.54, 0.27]
-            """
+        try:
+            pos = cell.get_position()
+            pos_top = [pos[0] - length, pos[1] - length]
+            pos_bottom = [pos[0] + length, pos[1] + length]
+            first_appearance = cell.get_first_appearance()
+            for consecutive_img_number in range(cell.get_number_appearances()):
+                # imgs_rgb[first_appearance + consecutive_img_number] = cv2.rectangle(imgs_rgb[first_appearance + consecutive_img_number], pos_top, pos_bottom, color)
+                imgs_rgb[first_appearance + consecutive_img_number] = cv2.circle(imgs_rgb[first_appearance + consecutive_img_number], pos, 40, colour)
+                """
+                for x_top in range(-length, length):
+                    imgs_rgb[first_appearance + concsecutive_img_number][pos[1] + length][pos[0] + x_top] = [0, 0.54, 0.27]
+                for x_bottom in range(-length, length):
+                    imgs_rgb[first_appearance + concsecutive_img_number][pos[1] - length][pos[0] + x_bottom] = [0, 0.54, 0.27]
+                for y in range(-length, length):
+                    imgs_rgb[first_appearance + concsecutive_img_number][pos[1] + y][pos[0] + length] = [0, 0.54, 0.27]
+                    
+                for y in range(-length, length):
+                    imgs_rgb[first_appearance + concsecutive_img_number][pos[1] + y][pos[0] - length] = [0, 0.54, 0.27]
+                """
 
 
-            """
-            for y in range(-5, 5):
-                for x in range(-5, 5):
-                    imgs_rgb[first_appearance + concsecutive_img_number][pos[1] + y][pos[0] + x] = [0, 0.54, 0.27]
+                """
+                for y in range(-5, 5):
+                    for x in range(-5, 5):
+                        imgs_rgb[first_appearance + concsecutive_img_number][pos[1] + y][pos[0] + x] = [0, 0.54, 0.27]
                     """
+        except:
+            print("No adherent cells")
 
     return imgs_rgb
 
@@ -269,13 +299,13 @@ def adherent_cells_over_phasecontrast(phc_img, masks, adherent_cells, colour):
     return adh_over_phc
 
 
-def background_mask_over_img(imgs, background_mask):
+def background_mask_over_img(imgs, background_masks):
     """
     Overlays outlines of the background mask over the images
 
     :param imgs: list
                 list of 2D images
-    :param background_mask: 2D array
+    :param background_masks: 2D array or list of 2d arrays
                 labelled image, where 0=no masks; 1,2,...=mask labels
     :param colour: array
                 Float array with values from 0.0 to 1.0 for the three RGB channels
@@ -283,8 +313,18 @@ def background_mask_over_img(imgs, background_mask):
                 RGB images with coloured outlines
     """
     masks = list()
-    for i in range(len(imgs)):
-        masks.append(background_mask)
+    # if background mask is a list with more than one image
+    if (isinstance(background_masks, list)) and (len(background_masks) > 1):
+        masks = background_masks
+    # if background mask is a list with just one image
+    elif isinstance(background_masks, list):
+        for i in range(len(imgs)):
+            masks.append(background_masks[0])
+    # if background mask is a single image
+    else:
+        for i in range(len(imgs)):
+            masks.append(background_masks)
+
     background_over_img = overlay_outlines(imgs, masks)
 
     return background_over_img
@@ -358,7 +398,7 @@ def find_intensity(imgs, background_mask=None):
 
     :param imgs: list or ndarray
             list containing 'ndarray' of each image ore one single ndarray
-    :param background_mask: 2D array
+    :param background_mask: 2D array or list of 2d arrays
             labelled image, where 0=no masks; 1,2,...=mask labels
     :return: intensity: float or dictionary
             intensity value (for single image input) or list of intensity values (for multiple image input)
@@ -371,21 +411,26 @@ def find_intensity(imgs, background_mask=None):
     if background_mask is None:
         # multiple images
         if isinstance(imgs, list):
-            intensities = list()
-            for img_nr in range(len(imgs)):
+            intensities = list()    # list needed for multiple images
+            for img_nr in range(len(imgs)):     # find intensity for every image
                 intensities.append(find_intensity_complete(imgs[img_nr]))
             return intensities
         # single image
         else:
-            intensity = find_intensity_complete(imgs)
+            intensity = find_intensity_complete(imgs)   # find intensity for single image
             return intensity
     # version with background mask
     else:
         # multiple images
         if isinstance(imgs, list):
-            intensities = list()
+            intensities = list()    # list needed for multiple images
             for img_nr in range(len(imgs)):
-                intensities.append(find_intensity_mask(imgs[img_nr], background_mask))
+                # if function gets a list of background_masks (one for every image): use the specific background_mask[img_nr]
+                if (isinstance(background_mask, list)) and (len(background_mask) > 1):
+                    intensities.append(find_intensity_mask(imgs[img_nr], background_mask[img_nr]))
+                # otherwise use the same background mask for every image
+                else:
+                    intensities.append(find_intensity_mask(imgs[img_nr], background_mask[0]))
             return intensities
         # single image
         else:

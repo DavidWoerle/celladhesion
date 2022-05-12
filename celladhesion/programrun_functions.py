@@ -220,4 +220,39 @@ def celladhesion_to_csv(confluence, nr_adherent_cells, nr_on_first, nr_adherent_
     csv_1.close()
 
 
+def intensities_to_csv(intensity, path):
+
+    with open(path, 'w') as csv_1:
+        csv_out = csv.writer(csv_1)
+        # single image, no background mask
+        if isinstance(intensity, float):
+            csv_out.writerow(['Intensity'])
+            csv_out.writerow([str(intensity).replace('.', ',')])
+        # single image, background mask
+        elif isinstance(intensity, dict):
+            csv_out.writerow(['Confluence', 'Intensity Mask', 'Intensity Rest', 'Diff.', 'Diff. Norm.'])
+            csv_out.writerow([str(intensity["confluence"]).replace('.', ','),
+                              str(intensity["mask"]).replace('.', ','),
+                              str(intensity["rest"]).replace('.', ','),
+                              str(intensity["mask"] - intensity["rest"]).replace('.', ','),
+                              str((intensity["mask"] - intensity["rest"]) / (intensity["mask"] + intensity["rest"])).replace('.', ',')])
+        # multiple images
+        else:
+            # no background mask
+            if isinstance(intensity[0], float):
+                csv_out.writerow(['Image Nr.', 'Intensity'])
+                for i in range(len(intensity)):
+                    csv_out.writerow([i, intensity[i]])
+            else:
+                csv_out.writerow(['Image Nr.', 'Confluence', 'Intensity Mask', 'Intensity Rest', 'Diff.', 'Diff. Norm.'])
+                for i in range(len(intensity)):
+                    csv_out.writerow([i,
+                                      str(intensity[i]["confluence"]).replace('.', ','),
+                                      str(intensity[i]["mask"]).replace('.', ','),
+                                      str(intensity[i]["rest"]).replace('.', ','),
+                                      str(intensity[i]["mask"] - intensity[i]["rest"]).replace('.', ','),
+                                      str((intensity[i]["mask"] - intensity[i]["rest"]) / (intensity[i]["mask"] + intensity[i]["rest"])).replace('.', ',')])
+
+    csv_1.close()
+
 

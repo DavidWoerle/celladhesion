@@ -253,12 +253,16 @@ class AdherentCell(Cell):
         # create 1-dim array where default number of adherent cells on each image is 0
         nr_adherent_cells_on_img = np.zeros((nr_imgs,), dtype=int)
 
-        for cell_number in range(len(adherent_cells)):      # iterate all adherent cells in 'adherent_cells' list
-            cell = adherent_cells[cell_number]              # simplify calling the cell
-            # iterate 'number_appearances'-attribute of the cell to count the appearances for all images
-            for number_appearance in range(cell.get_number_appearances()):
-                # raise the adherent cells counter for the respective image
-                nr_adherent_cells_on_img[cell.get_first_appearance() + number_appearance] += 1
+        if adherent_cells:
+            for cell_number in range(len(adherent_cells)):      # iterate all adherent cells in 'adherent_cells' list
+                cell = adherent_cells[cell_number]              # simplify calling the cell
+                try:
+                    # iterate 'number_appearances'-attribute of the cell to count the appearances for all images
+                    for number_appearance in range(cell.get_number_appearances()):
+                        # raise the adherent cells counter for the respective image
+                        nr_adherent_cells_on_img[cell.get_first_appearance() + number_appearance] += 1
+                except:
+                    print("No adherent cells")
 
         return nr_adherent_cells_on_img
 
