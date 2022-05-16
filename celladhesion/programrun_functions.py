@@ -243,15 +243,38 @@ def intensities_to_csv(intensity, path):
                 csv_out.writerow(['Image Nr.', 'Intensity'])
                 for i in range(len(intensity)):
                     csv_out.writerow([i, intensity[i]])
+                csv_out.writerow(['Images', 'Intensity Diff.'])
+                for i in range(len(intensity) - 1):
+                    csv_out.writerow([str(i + 1) + ' - ' + str(i),
+                                      intensity[i + 1] - intensity[i]])
+            # background mask
             else:
+                # create lists for the results (simplify writing to the csv file)
+                confluence = list()
+                mask = list()
+                rest = list()
+                diff = list()
+                diff_norm = list()
+
                 csv_out.writerow(['Image Nr.', 'Confluence', 'Intensity Mask', 'Intensity Rest', 'Diff.', 'Diff. Norm.'])
                 for i in range(len(intensity)):
+                    # add results to the lists
+                    confluence.append(intensity[i]["confluence"])
+                    mask.append(intensity[i]["mask"])
+                    rest.append(intensity[i]["rest"])
+                    diff.append(mask[i] - rest[i])
+                    diff_norm.append((mask[i] - rest[i]) / (mask[i] + rest[i]))
                     csv_out.writerow([i,
-                                      str(intensity[i]["confluence"]).replace('.', ','),
-                                      str(intensity[i]["mask"]).replace('.', ','),
-                                      str(intensity[i]["rest"]).replace('.', ','),
-                                      str(intensity[i]["mask"] - intensity[i]["rest"]).replace('.', ','),
-                                      str((intensity[i]["mask"] - intensity[i]["rest"]) / (intensity[i]["mask"] + intensity[i]["rest"])).replace('.', ',')])
+                                      str(confluence[i]).replace('.', ','),
+                                      str(mask[i]).replace('.', ','),
+                                      str(rest[i]).replace('.', ','),
+                                      str(diff[i]).replace('.', ','),
+                                      str(diff_norm[i]).replace('.', ',')])
+                csv_out.writerow(['Images', 'Intensity Diff.', 'Intensity Diff. Norm.'])
+                for i in range(len(intensity) - 1):
+                    csv_out.writerow([str(i + 1) + ' - ' + str(i),
+                                      str(diff[i + 1] - diff[i]).replace('.', ','),
+                                      str(diff_norm[i + 1] - diff_norm[i]).replace('.', ',')])
 
     csv_1.close()
 
