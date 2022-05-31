@@ -225,6 +225,32 @@ while True:
                 diams_name = str(input("Name of '.txt'-file with diameters (without ending): ")) + '.txt'
                 diams = imf.load_diams(os.path.join(path_input, diams_name))
 
+    elif program_choice == "3":
+
+        print("Determine CONFLUENCE of a mask \n\n")
+
+        while True:
+            # get path where '.png'-imgs of mask are saved
+            path_mask = input("\nPath where '.png'-image/s of background mask/s is/are saved:  ").replace('\\', '/')
+            imgs_mask = imf.read_pngs(path_mask) # read images
+
+            print("Confluence [%]: \n")
+
+            for i in range(len(imgs_mask)):
+                confluence = Cell.determine_confluence(imgs_mask[i])    # determine confluence of each mask
+                print(confluence)   # print result
+
+            print("\n__________________________________________________________________________________________\n")
+            print("All data found! ")
+            print("\n__________________________________________________________________________________________\n")
+
+            # check if user wants to rerun or stop the program
+            rerun = input("\nRerun? [y / n]: ")
+            # if no, break out of the loop to stop the program
+            if rerun == "n":
+                break
+            print("\n__________________________________________________________________________________________\n")
+
     elif program_choice == "4":
         print("Determine INTENSITY of images \n\n")
 
