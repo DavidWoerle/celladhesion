@@ -243,6 +243,7 @@ def intensities_to_csv(intensity, path):
                 csv_out.writerow(['Image Nr.', 'Intensity'])
                 for i in range(len(intensity)):
                     csv_out.writerow([i, intensity[i]])
+                csv_out.writerow([''])
                 csv_out.writerow(['Images', 'Intensity Diff.'])
                 for i in range(len(intensity) - 1):
                     csv_out.writerow([str(i + 1) + ' - ' + str(i),
@@ -270,6 +271,7 @@ def intensities_to_csv(intensity, path):
                                       str(rest[i]).replace('.', ','),
                                       str(diff[i]).replace('.', ','),
                                       str(diff_norm[i]).replace('.', ',')])
+                csv_out.writerow([''])
                 csv_out.writerow(['Images', 'Intensity Diff.', 'Intensity Diff. Norm.'])
                 for i in range(len(intensity) - 1):
                     csv_out.writerow([str(i + 1) + ' - ' + str(i),
