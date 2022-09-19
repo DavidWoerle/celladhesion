@@ -274,7 +274,7 @@ class Cell:
                             # only check pixels of the actual cell (approx. circle with radius  of the cell)
                             if (y - cell.get_position()[1]) ** 2 + (x - cell.get_position()[0]) ** 2 <= radius:
                                 # make sure the pixel is part of the background img (relevant for cells on edges of the img)
-                                if (0 <= y <= background_mask.shape[0]) and (0 <= x <= background_mask.shape[1]):
+                                if (0 <= y < background_mask.shape[0]) and (0 <= x < background_mask.shape[1]):
                                     # if the position of the pixel matches a mask pixel, add the cell to list
                                     if background_mask[y][x] != 0:
                                         match_found = True
