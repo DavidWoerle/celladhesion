@@ -127,6 +127,16 @@ def overlay_outlines(imgs, masks):
                 for x in range(masks[img_number].shape[1]):
                     if outlines[y][x] == 1:
                         img_rgb[y][x] = [imgs[img_number].max(), 0, 0]
+                        if x > masks[img_number].shape[1] / 2:
+                            img_rgb[y][x-1] = [imgs[img_number].max(), 0, 0]
+                        else:
+                            img_rgb[y][x+1] = [imgs[img_number].max(), 0, 0]
+                        if y > masks[img_number].shape[0] / 2:
+                            img_rgb[y-1][x] = [imgs[img_number].max(), 0, 0]
+                        else:
+                            img_rgb[y+1][x] = [imgs[img_number].max(), 0, 0]
+
+
             overlay.append(img_rgb)     # add new image with outlines to list
         return overlay
 
@@ -168,7 +178,7 @@ def overlay_adherent_squares(imgs, adherent_cells, square_length, colour=[0, 0.5
             first_appearance = cell.get_first_appearance()
             for consecutive_img_number in range(cell.get_number_appearances()):
                 # imgs_rgb[first_appearance + consecutive_img_number] = cv2.rectangle(imgs_rgb[first_appearance + consecutive_img_number], pos_top, pos_bottom, color)
-                imgs_rgb[first_appearance + consecutive_img_number] = cv2.circle(imgs_rgb[first_appearance + consecutive_img_number], pos, 40, colour)
+                imgs_rgb[first_appearance + consecutive_img_number] = cv2.circle(imgs_rgb[first_appearance + consecutive_img_number], pos, 40, colour, 2)
                 """
                 for x_top in range(-length, length):
                     imgs_rgb[first_appearance + concsecutive_img_number][pos[1] + length][pos[0] + x_top] = [0, 0.54, 0.27]
@@ -289,7 +299,7 @@ def adherent_cells_over_phasecontrast(phc_img, masks, adherent_cells, colour):
     :return: adh_over_phc: list of RGB images
                 RGB images with red outline where adherent cells are located
     """
-
+    phc_img = phc_img / phc_img.max()
     adherent_masks = filter_masks(masks, adherent_cells)
     imgs = list()
     for i in range(len(masks)):

@@ -69,6 +69,53 @@ def change_adhcelldet_params():
     jsonFile.close()
 
 
+def change_program_params():
+    """ Changes the program parameters in the config file"""
+
+    # load the current configuration
+    with open("config.json", "r") as jsonFile:
+        config = json.load(jsonFile)
+
+    while True:
+        inpt = input("Overlay outlines of the detected cells on the input images and mark the adherent cells? [y / n]: ")
+        try:
+            if inpt == 'y' or inpt == 'n':
+                config["program"]["overlay_outlines"] = inpt
+                break
+            else:
+                raise ValueError("Only 'y' or 'n' allowed")
+        except ValueError:
+            print("Only 'y' or 'n' allowed")
+
+    while True:
+        inpt = input("Filter cells for their position on a background mask? [y / n]:  ")
+        try:
+            if inpt == 'y' or inpt == 'n':
+                config["program"]["filter_cells"] = inpt
+                break
+            else:
+                raise ValueError("Only 'y' or 'n' allowed")
+        except ValueError:
+            print("Only 'y' or 'n' allowed")
+
+    while True:
+        inpt = input("Overlay adherent cells on image of the cell layer? [y / n]:  ")
+        try:
+            if inpt == 'y' or inpt == 'n':
+                config["program"]["overlay_phc"] = inpt
+                break
+            else:
+                raise ValueError("Only 'y' or 'n' allowed")
+        except ValueError:
+            print("Only 'y' or 'n' allowed")
+
+    # write the new parameters to the config file
+    with open("config.json", "w") as jsonFile:
+        json.dump(config, jsonFile)
+    jsonFile.close()
+
+
+
 """def get_celldet_params():
     # get parameters for cell detection from user
     while True:
@@ -176,6 +223,14 @@ def save_adh_in_txtfile(txtfile, number_adherent_cells, number_cells_total, adhe
     print("\nCreated AdherentCell-objects: ", AdherentCell.get_adherent_cellcounter())
     txtfile.write("\n\nCreated AdherentCell-objects: {0}\n".format(AdherentCell.get_adherent_cellcounter()))
 
+    # Adhesion quotient
+    print("\nAdhesion quotient A: ", round(number_adherent_cells / len(cells[0]), 2))
+    txtfile.write("\n\nAdhesion quotient A: {0}\n".format(round(number_adherent_cells / len(cells[0]), 2)))
+
+    # Corrected Adhesion quotient
+    print("\nCorrected Adhesion quotient A_c = (N_adh - N_adh,first) / N_first: ", round((number_adherent_cells - nr_adherent_cells_on_img[0]) / len(cells[0]), 2))
+    txtfile.write("\n\nCorrected Adhesion quotient A_c = (N_adh - N_adh,first) / N_first: {0}\n".format(round((number_adherent_cells - nr_adherent_cells_on_img[0]) / len(cells[0]), 2)))
+
     print("\n__________________________________________________________________________________________\n\n")
     txtfile.write("\n\n__________________________________________________________________________________________\n\n")
 
@@ -207,16 +262,30 @@ def number_adh_on_image_to_csv(nr_adherent_cells_on_img, path):
         csv_out.writerows([nr_adherent_cells_on_img[index]] for index in range(0, len(nr_adherent_cells_on_img)))
 
 
-def celladhesion_to_csv(confluence, nr_adherent_cells, nr_on_first, nr_adherent_cells_filtered, nr_on_first_filtered,
-                        path):
+def celladhesion_to_csv(path, nr_adherent_cells, nr_on_first, nr_adherent_cells_on_img, confluence=None,
+                        nr_adherent_cells_filtered=None, nr_on_first_filtered=None,
+                        nr_adherent_cells_on_img_filtered=None):
     with open(path, 'w') as csv_1:
         csv_out = csv.writer(csv_1)
-        csv_out.writerow(['Confl', 'adhC', 'Cfirst', 'adhC/Cfirst', 'adhC_filter', 'Cfirst_filter',
-                          'adhC/Cfirst_filter'])
-        csv_out.writerow([str(confluence).replace('.', ','), str(nr_adherent_cells), str(nr_on_first),
-                          str(round(nr_adherent_cells / nr_on_first, 2)).replace('.', ','),
-                          str(nr_adherent_cells_filtered), str(nr_on_first_filtered),
-                          str(round(nr_adherent_cells_filtered / nr_on_first_filtered, 2)).replace('.', ',')])
+
+        if confluence is None:
+            csv_out.writerow(['Confl', 'adhC', 'Cfirst', 'A', 'A_c'])
+            csv_out.writerow([str(100), str(nr_adherent_cells), str(nr_on_first),
+                              str(round(nr_adherent_cells / nr_on_first, 2)).replace('.', ','),
+                              str(round((nr_adherent_cells - nr_adherent_cells_on_img[0]) / nr_on_first, 2))
+                             .replace('.', ',')])
+        else:
+            csv_out.writerow(['Confl', 'adhC', 'Cfirst', 'A', 'A_c', 'adhC_filter', 'Cfirst_filter',
+                              'A_filter', 'A_c_filter'])
+            csv_out.writerow([str(confluence).replace('.', ','), str(nr_adherent_cells), str(nr_on_first),
+                              str(round(nr_adherent_cells / nr_on_first, 2)).replace('.', ','),
+                              str(round((nr_adherent_cells - nr_adherent_cells_on_img[0]) / nr_on_first, 2))
+                             .replace('.', ','),
+                              str(nr_adherent_cells_filtered), str(nr_on_first_filtered),
+                              str(round(nr_adherent_cells_filtered / nr_on_first_filtered, 2)).replace('.', ','),
+                              str(round((nr_adherent_cells_filtered - nr_adherent_cells_on_img_filtered[0]) / nr_on_first_filtered, 2))
+                             .replace('.', ',')
+                              ])
     csv_1.close()
 
 

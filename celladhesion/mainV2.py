@@ -23,6 +23,8 @@ print("Cell detection parameters: ")
 print(config["celldet"])
 print("\nAdherent Cell detection parameters: ")
 print(config["adhcelldet"])
+print("\nProgram parameters: ")
+print(config["program"])
 print("\n__________________________________________________________________________________________\n")
 
 
@@ -70,9 +72,10 @@ while True:
 
     elif program_choice == "2":
         print("USE already created masks to run the program \n\n")
-        # get images from user
-        path_imgs = input("Path of '.tif'-images: ").replace('\\', '/')
-        imgs = imf.read_tifs(path_imgs)
+        # get images from user, if overlay is required
+        if config["program"]["overlay_outlines"] == 'y':
+            path_imgs = input("Path of '.tif'-images: ").replace('\\', '/')
+            imgs = imf.read_tifs(path_imgs)
 
         # get masks/diams from user
         path_input = input("Path where masks and diams are saved: ").replace('\\', '/')
@@ -94,7 +97,7 @@ while True:
                                                                                                          config["adhcelldet"]["images_threshold"],
                                                                                                          config["adhcelldet"]["tolerance"])
             # find number of adherent cells on each image
-            nr_adherent_cells_on_img = AdherentCell.nr_adherent_cells_on_img(adherent_cells, len(imgs))
+            nr_adherent_cells_on_img = AdherentCell.nr_adherent_cells_on_img(adherent_cells, len(masks))
 
             # create '.txt'-file to save the data
             txtfile = open(
@@ -114,19 +117,21 @@ while True:
             prf.number_adh_on_image_to_csv(nr_adherent_cells_on_img,
                                            os.path.join(path_output_adherent, 'adh_on_img.csv'))
 
-            # overlay outlines of the detected cells on the input images and mark the adherent cells
-            overlay = imf.overlay_outlines(imgs, masks)
-            # 'overlay_adherent_squares' can only be done if list contains 'adherent_cell'-objects
-            if isinstance(adherent_cells[0], AdherentCell):
-                overlay = imf.overlay_adherent_squares(overlay, adherent_cells, 30)
+            # check if user wants to overlay outlines
+            if config["program"]["overlay_outlines"] == 'y':
+                # overlay outlines of the detected cells on the input images and mark the adherent cells
+                overlay = imf.overlay_outlines(imgs, masks)
+                # 'overlay_adherent_squares' can only be done if list contains 'adherent_cell'-objects
+                if isinstance(adherent_cells[0], AdherentCell):
+                    overlay = imf.overlay_adherent_squares(overlay, adherent_cells, 30)
 
-            # show created images and save them in the subdirectory
-            prf.show_and_save_result_imgs(overlay, path_output_adherent, "celladhesion")
+                # show created images and save them in the subdirectory
+                prf.show_and_save_result_imgs(overlay, path_output_adherent, "celladhesion")
 
             # check if user wants to filter the cells for their position
-            print("\n__________________________________________________________________________________________\n")
-            filter_choice = input("Filter cells for their position on a background mask? [y / n]:  ")
-            if filter_choice == "y":
+            if config["program"]["filter_cells"] == "y":
+                print("\n__________________________________________________________________________________________\n")
+                print("Filtering Cells for their position:")
                 # get the background mask
                 path_input_background_mask = input("\nPath where image with background masks is saved (if same as "
                                                    "before, just press enter):  ").replace('\\', '/')
@@ -149,7 +154,7 @@ while True:
                                                                                                                      "tolerance"])
 
                 # find number of adherent cells (filtered) on each image
-                nr_adherent_cells_on_img_filtered = AdherentCell.nr_adherent_cells_on_img(adherent_cells_filtered, len(imgs))
+                nr_adherent_cells_on_img_filtered = AdherentCell.nr_adherent_cells_on_img(adherent_cells_filtered, len(masks))
 
                 # determine confluence of the background mask
                 confluence = Cell.determine_confluence(background_mask)
@@ -168,22 +173,29 @@ while True:
                                                os.path.join(path_output_adherent, 'adh_on_img_filtered.csv'))
 
                 # save celladhesion data in a '.csv'-file
-                prf.celladhesion_to_csv(confluence, number_adherent_cells, len(cells[0]),
+                prf.celladhesion_to_csv(os.path.join(path_output_adherent, 'celladhesion_data.csv'),
+                                        number_adherent_cells, len(cells[0]), nr_adherent_cells_on_img, confluence,
                                         number_adherent_cells_filtered, len(filtered_cells[0]),
-                                        os.path.join(path_output_adherent, 'celladhesion_data.csv'))
+                                        nr_adherent_cells_on_img_filtered
+                                        )
+
+            # if no filtering executed, save to '.csv' without optional filter arguments
+            else:
+                prf.celladhesion_to_csv(os.path.join(path_output_adherent, 'celladhesion_data.csv'),
+                                        number_adherent_cells, len(cells[0]), nr_adherent_cells_on_img)
 
             txtfile.close()     # close txt file to safe the data
 
             # check if user wants to overlay the adherent cells on an image of the call layer
-            print("\n__________________________________________________________________________________________\n")
-            cells_on_phc = input("\nOverlay adherent cells on image of the cell layer? [y / n]:  ")
-            if cells_on_phc == "y":
+            if config["program"]["overlay_phc"] == "y":
+                print("\n__________________________________________________________________________________________\n")
+                print("Overlaying adherent Cells on image of the cell layer: ")
 
                 # get path and image of the cell layer
                 path_phc = input("\nPath where image of cell layer is saved (if same as before, just press enter):  ").replace('\\', '/')
                 # no new path -> use the same as before
                 if path_phc == "":
-                    if filter_choice == "y":
+                    if config["program"]["filter_cells"] == "y":
                         path_phc = path_input_background_mask
                     else:
                         path_phc = path_input
@@ -196,7 +208,7 @@ while True:
 
                 # overlay adherent cells on the image and save the result images in the directory
                 adh_over_phc = imf.adherent_cells_over_phasecontrast(img_phc, masks, adherent_cells, [1.0, 0, 0])
-                if filter_choice == "y":
+                if config["program"]["filter_cells"] == "y":
                     adh_over_phc = imf.overlay_adherent_squares(adh_over_phc, adherent_cells_filtered, 30)
                 prf.show_and_save_result_imgs(adh_over_phc, path_output_phc, "overlayPhc")
 
@@ -214,9 +226,10 @@ while True:
                 print("\n__________________________________________________________________________________________"
                       "\n")
 
-                # get images from user
-                path_imgs = input("Path of '.tif'-images: ").replace('\\', '/')
-                imgs = imf.read_tifs(path_imgs)
+                # get images from user, if overlay is required
+                if config["program"]["overlay_outlines"] == 'y':
+                    path_imgs = input("Path of '.tif'-images: ").replace('\\', '/')
+                    imgs = imf.read_tifs(path_imgs)
 
                 # get masks/diams from user
                 path_input = input("Path where masks and diams are saved: ").replace('\\', '/')
@@ -322,6 +335,11 @@ while True:
             print("\n")
             prf.change_adhcelldet_params()
 
+        change_program = input("\nChange program parameters: [y / n]:  ")
+        if change_program == "y":
+            print("\n")
+            prf.change_program_params()
+
         with open("config.json", "r") as jsonFile:
             config = json.load(jsonFile)
         jsonFile.close()
@@ -332,6 +350,8 @@ while True:
         print(config["celldet"])
         print("\nAdherent Cell detection parameters: ")
         print(config["adhcelldet"])
+        print("\nProgram parameters: ")
+        print(config["program"])
         print("\n__________________________________________________________________________________________\n")
 
     else:
