@@ -1,4 +1,5 @@
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"     # Suppress warning when program is run on different computer
 import cellpose.plot
 import matplotlib.pyplot as plt
 import imagefunctions as imf
@@ -8,7 +9,6 @@ from AdherentCell import AdherentCell
 import programrun_functions as prf
 import json
 
-os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"     # Suppress warning when program is run on different computer
 
 # load the config file
 with open("config.json", "r") as jsonFile:
