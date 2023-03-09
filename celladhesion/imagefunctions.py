@@ -76,6 +76,13 @@ def load_masks(path):
     return masks
 
 
+def auto_load_masks(path):
+    # search for the '.npy' file at the given path
+    filenames = [f for f in os.listdir(path) if f.endswith('.npy')]
+    # load the masks
+    return load_masks(os.path.join(path, filenames[0])), filenames[0]
+
+
 def load_test_masks():
     testmasks = np.load('testmasks.npy')
     return testmasks
@@ -86,6 +93,13 @@ def load_diams(path):
     with open(path, 'r') as filehandle:
         diams = [current_diam.rstrip() for current_diam in filehandle.readlines()]
     return list(np.float_(diams))
+
+
+def auto_load_diams(path):
+    # search for the '.txt' file at the given path
+    filenames = [f for f in os.listdir(path) if f.endswith('.txt')]
+    # load the diams
+    return load_diams(os.path.join(path, filenames[0])), filenames[0]
 
 
 def load_test_diams():

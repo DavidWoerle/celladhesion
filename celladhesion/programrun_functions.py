@@ -109,6 +109,17 @@ def change_program_params():
         except ValueError:
             print("Only 'y' or 'n' allowed")
 
+    while True:
+        inpt = input("Auto-load masks and diameters from the selected directory? [y / n]:  ")
+        try:
+            if inpt == 'y' or inpt == 'n':
+                config["program"]["auto_load_masks_and_diams"] = inpt
+                break
+            else:
+                raise ValueError("Only 'y' or 'n' allowed")
+        except ValueError:
+            print("Only 'y' or 'n' allowed")
+
     # write the new parameters to the config file
     with open("config.json", "w") as jsonFile:
         json.dump(config, jsonFile)
@@ -173,7 +184,7 @@ def change_program_params():
 
 def save_config_in_txtfile(txtfile, masks_name, diams_name, config):
     # save the used masks, diams and parameters in the text file
-    txtfile.write("masks={0}, diams={1}\n".format(masks_name, diams_name))
+    txtfile.write("masks: {0}, diams: {1}\n".format(masks_name, diams_name))
     txtfile.write("Cell detection parameters:")
     txtfile.write(str(config["celldet"]))
     txtfile.write("\nAdherent Cell detection parameters:")
