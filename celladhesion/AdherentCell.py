@@ -92,7 +92,6 @@ class AdherentCell(Cell):
 
         # iterate every image (ignore last image where no more new adherent adherent_cells can be found)
         for img_number in range(len(cells) - 1):
-
             # iterate every cell on image 'img_number'
             for cell_number in range(len(cells[img_number])):
                 number_consecutive_imgs = 1  # auxiliary variable that represents number of images in which cell keeps its position
