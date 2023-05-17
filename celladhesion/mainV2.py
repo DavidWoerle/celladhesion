@@ -32,8 +32,8 @@ while True:
 
     # let user choose the program mode
     print("Choose mode: \n")
-    print("1.) Create NEW masks/diameters \n2.) USE already created masks to run the program \n3.) Determine CONFLUENCE of \
-    a mask \n4.) Determine INTENSITY of images \n5.) Change CONFIGURATION \n")
+    print("1.) Create NEW masks/diameters \n2.) USE already created masks to run the program \n3.) Determine CONFLUENCE"
+          " of a mask \n4.) Determine INTENSITY of images \n5.) Change CONFIGURATION \n")
 
     program_choice = input("Type the mode number and press enter:  ")
     print("\n__________________________________________________________________________________________\n")
