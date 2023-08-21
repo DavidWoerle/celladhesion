@@ -97,11 +97,14 @@ while True:
 
             # find cells and adherent cells
             cells = Cell.find_cells(masks)
-            number_adherent_cells, number_cells_total, adherent_cells = AdherentCell.find_adherent_cells(cells, diams,
+            number_adherent_cells, number_cells_total, adherent_cells, non_adherent_cells = AdherentCell.find_adherent_cells(cells, diams,
                                                                                                          config["adhcelldet"]["images_threshold"],
                                                                                                          config["adhcelldet"]["tolerance"])
             # find number of adherent cells on each image
             nr_adherent_cells_on_img = AdherentCell.nr_adherent_cells_on_img(adherent_cells, len(masks))
+
+            # Create Boxplot to show the size distribution and save the sizes
+            prf.boxplot(non_adherent_cells, adherent_cells, path_output_adherent, 'sizes')
 
             # create '.txt'-file to save the data
             txtfile = open(
@@ -150,7 +153,7 @@ while True:
                 filtered_cells = list()
                 for i in range(len(cells)):
                     filtered_cells.append(Cell.filter_for_position(cells[i], background_mask))
-                number_adherent_cells_filtered, number_cells_total_filtered, adherent_cells_filtered = AdherentCell.find_adherent_cells(filtered_cells,
+                number_adherent_cells_filtered, number_cells_total_filtered, adherent_cells_filtered, non_adherent_cells_filtered = AdherentCell.find_adherent_cells(filtered_cells,
                                                                                                                  diams,
                                                                                                                  config["adhcelldet"][
                                                                                                                      "images_threshold"],
@@ -159,6 +162,9 @@ while True:
 
                 # find number of adherent cells (filtered) on each image
                 nr_adherent_cells_on_img_filtered = AdherentCell.nr_adherent_cells_on_img(adherent_cells_filtered, len(masks))
+
+                # Create boxplot to show size distribution and save the sizes
+                prf.boxplot(non_adherent_cells_filtered, adherent_cells_filtered, path_output_adherent, 'sizes_filtered')
 
                 # determine confluence of the background mask
                 confluence = Cell.determine_confluence(background_mask)

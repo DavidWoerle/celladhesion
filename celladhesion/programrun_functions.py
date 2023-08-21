@@ -1,11 +1,15 @@
 import json
-
+import Cell
+import AdherentCell
 import imagefunctions as imf
 from AdherentCell import AdherentCell
 import skimage.io
 import os.path
 import csv
 import config
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.stats import ttest_ind
 
 
 def change_celldet_params():
@@ -359,5 +363,98 @@ def intensities_to_csv(intensity, path):
                                       str(diff_norm[i + 1] - diff_norm[i]).replace('.', ',')])
 
     csv_1.close()
+
+
+def boxplot(non_adherent_cells, adherent_cells, path, filename):
+
+    # convert non-adherent cells radius to right format for matplotlib.plot
+
+    # convert adherent_cells to right format for matplotlib.plot
+    data_non_adherent = np.empty(len(non_adherent_cells))  # create empty numpy array with size of the number of non-adh cells
+    # check if array contains cell objects (otherwise it contains string 'empty' instead of first cell object)
+    if not isinstance(type(non_adherent_cells[0]), str):
+        for i in range(len(non_adherent_cells)):
+            data_non_adherent[i] = non_adherent_cells[i].get_radius()  # get size and add it to data_non_adharent array
+    """
+    size = 0    # counter for whole number of cells
+    for j in range(len(cells)):     # run all images cells[j]
+        for i in range(len(cells[j])):      # run all cells cells[j][i] on image j
+            size += 1          # increment cell counter
+    data_all = np.empty(size)       # create empty numpy array with same size as number of cells
+
+    # add cells to the numpy array:
+
+    # check if array contains cell objects (otherwise it contains string 'empty' instead of first cell object)
+    if not isinstance(type(cells[0][0]), str):
+        #  if cells array contains cells: iterate all cells in array, get size and safe it to data_all array
+        counter = 0
+        for j in range(len(cells)):
+            for i in range(len(cells[j])):
+                data_all[counter] = cells[j][i].get_radius()
+                counter += 1
+                """
+
+    # convert adherent cells radius to right format for matplotlib.plot
+    data_adherent = np.empty(len(adherent_cells))       # create empty numpy array with size of the number of adh cells
+    # check if array contains cell objects (otherwise it contains string 'empty' instead of first cell object)
+    if not isinstance(type(adherent_cells[0]), str):
+        try:
+            for i in range(len(adherent_cells)):
+                data_adherent[i] = adherent_cells[i].get_radius()   # get size and add it to data_adharent array
+        except:
+            data_adherent[0] = 0
+
+    # statistic calculations:
+    mean_non_adherent = np.mean(data_non_adherent)    # mean value and standard deviation of non-adh cells
+    std_dev_non_adherent = np.std(data_non_adherent)
+    mean_adherent = np.mean(data_adherent)  # mean value and standard deviation of adherent cells
+    std_dev_adherent = np.std(data_adherent)
+    t_stat, p_val = ttest_ind(data_non_adherent, data_adherent)  # t-test between the two groups and get p-value p_val
+
+    # Plot the data as boxplot
+
+    data = [data_non_adherent, data_adherent]    # data structure for the plt.boxplot function
+    labels = ['Non-adherent', 'Adherent']        # labels for both boxplots
+
+    plt.title('Size distribution')      # title of plot
+    plt.boxplot(data, patch_artist=True, labels=labels)     # create the plot
+    # add legend that contains the mean values and standard deviations
+    plt.legend(["Non-adherent: " + str(np.round(mean_non_adherent, 3)) + u"\u00B1" + str(np.round(std_dev_non_adherent, 3)),
+                "Adharent: " + str(np.round(mean_adherent, 3)) + u"\u00B1" + str(np.round(std_dev_adherent, 2))])
+    plt.ylabel('Radius [pixels]')       # label the y-axis
+    plt.savefig(os.path.join(path, (filename + '.pdf')))            # save the plot at the given path
+    plt.show()                          # show the plot
+
+    # print the mean values, standard deviations and p-value
+    print('\nSizes: \n')
+    print('Non-adherent:  ' + str(np.round(mean_non_adherent, 3)) + u"\u00B1" + str(np.round(std_dev_non_adherent, 3)))
+    print('Adherent:  ' + str(np.round(mean_adherent, 3)) + u"\u00B1" + str(np.round(std_dev_adherent, 2)))
+    print('p-value:  ' + str(p_val) + '\n\n')
+
+    with open(os.path.join(path, (filename + '.csv')), 'w') as csv_1:
+        csv_out = csv.writer(csv_1)
+        csv_out.writerow(['radius in [pixels]'])
+        csv_out.writerow(['Non-adh cells', 'adh Cells', '', 'mean n-adh', 'stddev n-adh', 'mean adh', 'stddev adh', 'p-val'])
+        csv_out.writerow([str(np.round(data_non_adherent[0]).astype(int)).replace('.', ','),  str(np.round(data_adherent[0]).astype(int)).replace('.', ','), ' ', str(mean_non_adherent).replace('.', ','),   str(std_dev_non_adherent).replace('.', ','),   str(mean_adherent).replace('.', ','),   str(std_dev_adherent).replace('.', ','),  str(p_val).replace('.', ',')])
+
+        if len(data_non_adherent) >= len(data_adherent):
+            for i in range(1, len(data_non_adherent)):
+                try:
+                    csv_out.writerow([str(np.round(data_non_adherent[i]).astype(int)).replace('.', ','), str(np.round(data_adherent[i]).astype(int)).replace('.', ',')])
+                except:
+                    csv_out.writerow([str(np.round(data_non_adherent[i]).astype(int)).replace('.', ',')])
+        else:
+            for i in range(1, len(data_adherent)):
+                try:
+                    csv_out.writerow([str(np.round(data_non_adherent[i]).astype(int)).replace('.', ','), str(np.round(data_adherent[i]).astype(int)).replace('.', ',')])
+                except:
+                    csv_out.writerow(['', str(np.round(data_adherent[i]).astype(int)).replace('.', ',')])
+
+    csv_1.close()
+
+
+
+
+
 
 

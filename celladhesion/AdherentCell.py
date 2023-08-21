@@ -75,6 +75,8 @@ class AdherentCell(Cell):
                     total number of adherent_cells
         :return adherent_cells: list
                     list of 'AdherentCell' objects
+        :return non_adherent_cells: list
+                    list of 'Cell' objects
         """
         if threshold_imgs < 2:
             print("threshold_imgs has to be greater than or equal to 2")
@@ -89,6 +91,8 @@ class AdherentCell(Cell):
 
         adherent_cells_doubles = list()  # auxiliary variable to prevent multiple counts for one cell
         adherent_cells = list()          # list with 'AdherentCell'-objects
+
+        non_adherent_cells = list()     # list with all cells that were not detected as adherent ('all minus adherent')
 
         # iterate every image (ignore last image where no more new adherent adherent_cells can be found)
         for img_number in range(len(cells) - 1):
@@ -119,6 +123,9 @@ class AdherentCell(Cell):
                                 cell_found = True
                                 break
                         if not cell_found:
+                            #non_adherent_cells.append(Cell(cells[img_number][cell_number].get_position(),
+                             #                              cells[img_number][cell_number].get_radius()))   # cell is not adherent -> add to non_adherent list
+                            non_adherent_cells.append(cells[img_number][cell_number])
                             break  # no cell found on image 'check_img_number'
                             # -> jump to next cell cell[img_number][cell_number]
 
@@ -136,10 +143,13 @@ class AdherentCell(Cell):
                 number_cells_total += 1
         number_cells_total -= len(adherent_cells_doubles)
 
+        if not non_adherent_cells:
+            non_adherent_cells = ["No non-adherent cells found"]
+
         if not adherent_cells:  # prevent ValueError if 'adherent_cells'-list is empty
-            return number_adherent_cells, number_cells_total, ["No adherent cells found"]
+            return number_adherent_cells, number_cells_total, ["No adherent cells found"], non_adherent_cells
         else:
-            return number_adherent_cells, number_cells_total, adherent_cells
+            return number_adherent_cells, number_cells_total, adherent_cells, non_adherent_cells
 
     @staticmethod
     def find_adherent_cells2(cells, diams, threshold_imgs, tolerance, missing_cell_threshold=0):

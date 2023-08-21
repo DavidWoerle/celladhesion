@@ -1,7 +1,12 @@
 import os.path
 import cellpose.models
 import numpy as np
+import cv2
 import imagefunctions as imf
+from PIL import Image
+import matplotlib.image
+import skimage.io
+from cellpose import io
 
 
 class Cell:
@@ -200,6 +205,24 @@ class Cell:
         masks_array = np.asarray(masks)
         open(os.path.join(path, (filename + '.npy')), 'w+')     # create file
         np.save(os.path.join(path, (filename + '.npy')), masks_array)
+
+    @staticmethod
+    def safe_masks_as_png(masks, path, filename):
+        """ Save 'masks' as a '.npy'-file under the name 'filename' at given 'path'
+        :param masks: list of 2D arrays
+        labelled image, where 0=no masks; 1,2,...=mask labels
+        :param path: string
+                Format: "...:/.../..."
+        :param filename: string
+                without '.npy' ending
+        """
+
+        masks_array = np.asarray(masks)
+        """for i in range(len(masks)):
+            open(os.path.join(path, (filename + str(i) + '.png')), 'w+')     # create file
+            cv2.imwrite(os.path.join(path, (filename + str(i) + '.png')), masks_array[i])"""
+        cv2.imwrite(os.path.join(path, (filename + '.png')), masks_array)
+
 
     @staticmethod
     def safe_diams(diams, path, filename):
